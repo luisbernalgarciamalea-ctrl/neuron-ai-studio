@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 
-# Replace YOUR-FRONTEND-DOMAIN with the real Vercel/custom domain after deployment.
-Sitemap: https://YOUR-FRONTEND-DOMAIN/sitemap.xml
+Sitemap: https://neuron-ai-studio-nine.vercel.app/sitemap.xml
