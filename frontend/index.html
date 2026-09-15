@@ -1,0 +1,2225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Athena AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Athena AI is an all-in-one creative workspace for chat, research, coding, documents, books, images, scripts, and presentations." />
+  <meta name="author" content="Luis Bernal Garcia-Malea" />
+  <meta name="theme-color" content="#101521" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Athena AI" />
+  <meta property="og:title" content="Athena AI" />
+  <meta property="og:description" content="Think, write, design, research, and build in one calm AI workspace." />
+  <meta property="og:image" content="assets/athena-logo.png" />
+  <link rel="icon" type="image/png" href="assets/athena-logo.png" />
+
+  <script defer src="vendor/lucide.min.js"></script>
+  <script defer src="vendor/marked.min.js"></script>
+  <script defer src="vendor/purify.min.js"></script>
+  <script defer src="vendor/fflate.js"></script>
+  <script defer src="athena.js"></script>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Serif+Display&family=Fira+Code:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- DOCX library -->
+  <script src="vendor/docx.iife.js"></script>
+  <script src="vendor/pptxgen.bundle.js"></script>
+
+  <style>
+    :root {
+      --bg: #101521;
+      --bg-soft: #17202f;
+      --bg-soft-2: #1c2535;
+      --gold: #d5b576;
+      --gold-soft: rgba(213,181,118,0.18);
+      --text: #f4efe5;
+      --text-soft: #aeb8c8;
+      --border: #262633;
+      --danger: #ff4b6b;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.85);
+      --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-display: "DM Serif Display", "Times New Roman", serif;
+      --font-mono: "Fira Code", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background:
+        radial-gradient(circle at top left, #18131a 0, transparent 55%),
+        radial-gradient(circle at top right, #18131a 0, transparent 55%),
+        linear-gradient(180deg, #101521, #020204);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button { font-family: inherit; }
+
+    .hidden { display: none !important; }
+
+    /* Top nav */
+    .top-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 64px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(90deg, rgba(5,5,7,0.96), rgba(5,5,7,0.9));
+      border-bottom: 1px solid rgba(213,181,118,0.3);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      z-index: 10;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-img {
+      width: 42px;
+      height: 42px;
+      border-radius: 16px;
+      object-fit: cover;
+      border: 1px solid rgba(213,181,118,0.7);
+      box-shadow:
+        0 0 18px rgba(213,181,118,0.7),
+        0 0 26px rgba(0,0,0,0.9);
+      background: #000;
+    }
+
+    .nav-title-main {
+      font-family: var(--font-display);
+      font-size: 20px;
+      letter-spacing: 0.06em;
+    }
+
+    .nav-title-sub {
+      font-size: 11px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .nav-title-creator {
+      font-size: 11px;
+      color: var(--gold);
+      margin-top: 2px;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .plan-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(213,181,118,0.5);
+      background: rgba(10,10,14,0.9);
+      color: var(--text-soft);
+    }
+
+    .plan-pill span {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .account-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(213,181,118,0.4);
+      background: rgba(10,10,14,0.9);
+      font-size: 12px;
+      color: var(--text-soft);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .account-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #d5b576, #7a5a1a);
+      border: 1px solid rgba(213,181,118,0.7);
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 8px 16px;
+      border: 1px solid transparent;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: transparent;
+      color: var(--text);
+      transition: all 0.16s ease-out;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #d5b576, #f7d77f);
+      color: #101521;
+      border-color: rgba(0,0,0,0.8);
+      box-shadow:
+        0 8px 18px rgba(213,181,118,0.45),
+        0 0 24px rgba(0,0,0,0.9);
+    }
+
+    .btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow:
+        0 10px 22px rgba(213,181,118,0.6),
+        0 0 28px rgba(0,0,0,1);
+    }
+
+    .btn.ghost {
+      border-color: rgba(213,181,118,0.4);
+      background: rgba(10,10,14,0.9);
+      color: var(--gold);
+    }
+
+    .btn.ghost:hover {
+      box-shadow: 0 0 12px rgba(213,181,118,0.4);
+    }
+
+    .btn.link {
+      border: none;
+      padding: 0;
+      font-size: 12px;
+      color: var(--gold);
+      background: transparent;
+    }
+
+    .btn.link:hover { color: #ffe08a; }
+
+    .btn.danger {
+      border-color: rgba(255,75,107,0.4);
+      color: var(--danger);
+      background: rgba(255,75,107,0.06);
+    }
+
+    .btn.danger:hover {
+      background: rgba(255,75,107,0.12);
+    }
+
+    .screen {
+      min-height: 100vh;
+      padding: 80px 20px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .home-wrap {
+      max-width: 1040px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 28px;
+      align-items: center;
+    }
+
+    .hero-tagline {
+      font-size: 12px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      margin-bottom: 8px;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: 40px;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(120deg, #d5b576, #ffe08a);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      color: var(--text-soft);
+      max-width: 420px;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .hero-sub-creator {
+      font-size: 12px;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .hero-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(10,10,14,0.9);
+      border: 1px solid rgba(213,181,118,0.4);
+      color: var(--text-soft);
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .pricing-card {
+      background: #101521;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(213,181,118,0.3);
+      box-shadow: var(--shadow);
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pricing-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .pricing-price {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .pricing-desc {
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .pricing-list {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .pricing-list li {
+      margin-left: 16px;
+      margin-bottom: 3px;
+    }
+
+    .hero-preview {
+      background: radial-gradient(circle at top, #15151c 0, #101521 60%);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(213,181,118,0.35);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hero-preview-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .hero-preview-card {
+      border-radius: var(--radius-md);
+      background: #17202f;
+      border: 1px solid rgba(213,181,118,0.25);
+      padding: 10px;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .hero-preview-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+
+    .auth-card {
+      max-width: 380px;
+      width: 100%;
+      background: #101521;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(213,181,118,0.35);
+      box-shadow: var(--shadow);
+      padding: 20px 22px;
+    }
+
+    .auth-card h2 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .auth-sub {
+      font-size: 13px;
+      color: var(--text-soft);
+      margin-bottom: 14px;
+    }
+
+    .auth-card label {
+      display: block;
+      font-size: 13px;
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+
+    .auth-card input {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: #17202f;
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .auth-card input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px rgba(213,181,118,0.4);
+      background: #101521;
+    }
+
+    .auth-error {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--danger);
+    }
+
+    .auth-switch {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      height: calc(100vh - 64px);
+      margin-top: 64px;
+    }
+
+    .sidebar {
+      background: #101521;
+      border-right: 1px solid rgba(213,181,118,0.25);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sidebar-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+      margin: 4px 4px 2px;
+    }
+
+    .sidebar-creator {
+      font-size: 11px;
+      color: var(--gold);
+      margin: 8px 4px 4px;
+      opacity: 0.9;
+    }
+
+    .mode-btn {
+      width: 100%;
+      text-align: left;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 13px;
+      background: rgba(11,11,16,0.9);
+      color: var(--text-soft);
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mode-btn:hover {
+      background: #1c2535;
+      border-color: rgba(213,181,118,0.3);
+    }
+
+    .mode-btn.active {
+      background: #1c2535;
+      border-color: var(--gold);
+      color: var(--text);
+      box-shadow: 0 0 0 1px rgba(213,181,118,0.4);
+    }
+
+    .logout-btn {
+      margin-top: auto;
+    }
+
+    .code-lang-container {
+      margin-left: 10px;
+      margin-top: -4px;
+      margin-bottom: 4px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: #101521;
+      border: 1px solid rgba(213,181,118,0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .code-lang-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 10px;
+      color: var(--text-soft);
+    }
+
+    .code-lang-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .code-lang-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .code-lang-select {
+      flex: 1;
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #17202f;
+      color: var(--text);
+      font-size: 11px;
+      outline: none;
+    }
+
+    .code-lang-select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px rgba(213,181,118,0.4);
+    }
+
+    .main-panel {
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px;
+      background: radial-gradient(circle at top, #15151c 0, #101521 60%);
+    }
+
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 10px;
+    }
+
+    .main-header h2 {
+      font-family: var(--font-display);
+      font-size: 22px;
+    }
+
+    .main-header p {
+      font-size: 13px;
+      color: var(--text-soft);
+      margin-top: 2px;
+    }
+
+    .mode-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(213,181,118,0.4);
+      background: rgba(10,10,14,0.9);
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+
+    .mode-pill span {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .workspace {
+      margin-top: 8px;
+      border-radius: var(--radius-lg);
+      background: #101521;
+      border: 1px solid rgba(213,181,118,0.3);
+      box-shadow: var(--shadow);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100% - 40px);
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .msg-card {
+      border-radius: 18px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      border: 1px solid rgba(213,181,118,0.25);
+      background: #17202f;
+    }
+
+    .msg-card.user {
+      background: #1c2535;
+      border-color: rgba(213,181,118,0.5);
+    }
+
+    .msg-card.ai {
+      background: #101521;
+      border-color: rgba(213,181,118,0.3);
+    }
+
+    .msg-meta {
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .input-row textarea {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(213,181,118,0.3);
+      background: #17202f;
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 13px;
+      resize: none;
+      min-height: 40px;
+      max-height: 120px;
+      outline: none;
+      font-family: var(--font-mono);
+    }
+
+    .input-row textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px rgba(213,181,118,0.4);
+      background: #101521;
+    }
+
+    .hint {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .doc-surface {
+      flex: 1;
+      border-radius: var(--radius-lg);
+      background: #101521;
+      border: 1px solid rgba(213,181,118,0.3);
+      padding: 14px 16px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.7;
+      box-shadow: inset 0 0 0 1px rgba(20,20,26,0.9);
+    }
+
+    .doc-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .doc-subtitle {
+      font-size: 13px;
+      color: var(--text-soft);
+      margin-bottom: 10px;
+    }
+
+    .doc-body { white-space: pre-wrap; }
+
+    .doc-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-soft);
+      margin-bottom: 6px;
+      gap: 8px;
+    }
+
+    .doc-actions { display: flex; gap: 6px; }
+
+    .designer-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .designer-card {
+      border-radius: var(--radius-md);
+      background: #17202f;
+      border: 1px solid rgba(213,181,118,0.3);
+      padding: 10px 12px;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .designer-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gold);
+    }
+
+    .designer-body {
+      white-space: pre-wrap;
+      color: var(--text-soft);
+    }
+
+    .media-preview {
+      margin-top: 6px;
+      border-radius: var(--radius-md);
+      border: 1px dashed rgba(213,181,118,0.4);
+      background: #101521;
+      padding: 10px;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .fake-media-box {
+      margin-top: 6px;
+      border-radius: var(--radius-md);
+      background: radial-gradient(circle at top, #d5b576, #7a5a1a);
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #101521;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.9);
+      text-align: center;
+      padding: 10px;
+    }
+
+    /* Code bubble */
+    .code-bubble {
+      background: #050509;
+      border-radius: 16px;
+      border: 1px solid rgba(80, 80, 120, 0.8);
+      padding: 10px 12px;
+      font-family: "Fira Code", monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .code-line {
+      display: flex;
+    }
+
+    .code-line-number {
+      width: 32px;
+      color: #555b7a;
+      text-align: right;
+      padding-right: 8px;
+      user-select: none;
+    }
+
+    .code-line-content {
+      flex: 1;
+    }
+
+    .code-keyword { color: #d5b576; }
+    .code-string { color: #9cdcfe; }
+    .code-comment { color: #6a9955; }
+
+    /* Writing bubbles */
+    .writing-bubble {
+      border-radius: 16px;
+      border: 1px solid rgba(213,181,118,0.3);
+      background: #101521;
+      padding: 10px 12px;
+      margin-top: 8px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.8);
+    }
+
+    .writing-bubble-header {
+      font-size: 12px;
+      color: var(--gold);
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .writing-bubble-body {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    /* Settings panel (dev-only) */
+    .settings-panel {
+      position: absolute;
+      top: 52px;
+      right: 0;
+      width: 280px;
+      background: #101521;
+      border-radius: 16px;
+      border: 1px solid rgba(213,181,118,0.4);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.9);
+      padding: 12px 14px;
+      font-size: 12px;
+      z-index: 20;
+    }
+
+    .settings-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-soft);
+      margin-bottom: 6px;
+    }
+
+    .settings-group {
+      margin-bottom: 8px;
+    }
+
+    .settings-group label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-bottom: 3px;
+    }
+
+    .settings-group input {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #17202f;
+      color: var(--text);
+      padding: 6px 8px;
+      font-size: 11px;
+      outline: none;
+    }
+
+    .settings-group input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px rgba(213,181,118,0.4);
+      background: #101521;
+    }
+
+    .settings-footer {
+      font-size: 10px;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    .footer {
+      width: 100%;
+      padding: 10px 20px 16px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-soft);
+      border-top: 1px solid rgba(213,181,118,0.25);
+      background: #101521;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .home-wrap { grid-template-columns: 1fr; }
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar {
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid rgba(213,181,118,0.25);
+      }
+      .workspace { height: calc(100vh - 220px); }
+      .designer-grid { grid-template-columns: 1fr; }
+      .settings-panel {
+        right: 10px;
+        width: calc(100% - 20px);
+      }
+    }
+
+  /* ===== PUMPED UP ADDITIONS ===== */
+
+  /* Toast */
+  .toast-container { position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:8px; z-index:999; }
+  .toast { padding:10px 18px; border-radius:999px; font-size:13px; border:1px solid rgba(213,181,118,0.5); background:rgba(5,5,7,0.97); color:var(--text); box-shadow:0 8px 24px rgba(0,0,0,0.9); animation:toastIn 0.2s ease-out; backdrop-filter:blur(10px); }
+  .toast.success { border-color:rgba(80,200,120,0.5); color:#80e0a0; }
+  .toast.error { border-color:rgba(255,75,107,0.5); color:var(--danger); }
+  @keyframes toastIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Thinking dots */
+  .thinking { display:flex; align-items:center; gap:5px; padding:10px 14px; }
+  .thinking-dot { width:7px; height:7px; border-radius:50%; background:var(--gold); animation:blink 1.2s infinite; }
+  .thinking-dot:nth-child(2){animation-delay:0.2s} .thinking-dot:nth-child(3){animation-delay:0.4s}
+  @keyframes blink{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+
+  /* Markdown */
+  .md h1,.md h2,.md h3{font-family:var(--font-display);color:var(--gold);margin:10px 0 4px}
+  .md h1{font-size:18px}.md h2{font-size:15px}.md h3{font-size:13px}
+  .md p{margin-bottom:8px;line-height:1.65}
+  .md ul,.md ol{margin:4px 0 8px 18px}.md li{margin-bottom:3px;line-height:1.55}
+  .md code{font-family:var(--font-mono);background:rgba(213,181,118,0.08);border:1px solid rgba(213,181,118,0.2);border-radius:4px;padding:1px 5px;font-size:11px;color:#d5b576}
+  .md pre{background:#050509;border:1px solid rgba(80,80,120,0.8);border-radius:12px;padding:10px 14px;margin:8px 0;overflow-x:auto}
+  .md pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text)}
+  .md strong{color:var(--text);font-weight:600}.md em{color:var(--text-soft);font-style:italic}
+  .md blockquote{border-left:3px solid var(--gold);margin:6px 0;padding:4px 10px;color:var(--text-soft)}
+  .md hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+
+  /* Copy button */
+  .msg-actions{display:flex;gap:6px;margin-top:8px}
+  .copy-btn{font-size:10px;padding:2px 8px;border-radius:999px;border:1px solid rgba(213,181,118,0.3);background:transparent;color:var(--text-soft);cursor:pointer;font-family:var(--font-sans);transition:all 0.15s}
+  .copy-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+  /* Generated image */
+  .generated-image{width:100%;border-radius:16px;border:1px solid rgba(213,181,118,0.4);box-shadow:0 10px 30px rgba(0,0,0,0.9);display:block;margin-top:8px}
+
+  /* Logo pulse */
+  @keyframes logoPulse{0%,100%{box-shadow:0 0 18px rgba(213,181,118,0.7),0 0 26px rgba(0,0,0,0.9)}50%{box-shadow:0 0 32px rgba(213,181,118,1),0 0 60px rgba(213,181,118,0.25)}}
+  .logo-img{animation:logoPulse 3s ease-in-out infinite}
+
+  /* Typewriter cursor */
+  .typewriter::after{content:"|";color:var(--gold);animation:blinkc 0.7s step-end infinite}
+  @keyframes blinkc{50%{opacity:0}}
+
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(213,181,118,0.3);border-radius:99px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(213,181,118,0.6)}
+
+  </style>
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+  <!-- TOP NAV -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <img src="assets/athena-logo.png" alt="Athena AI logo" class="logo-img" />
+      <div>
+        <div class="nav-title-main">Athena AI</div>
+        <div class="nav-title-creator">Created by Luis Bernal Garcia-Malea</div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="plan-pill">
+        Plan: <span id="planLabel">Free</span>
+      </div>
+      <div id="accountPill" class="account-pill hidden">
+        <div class="account-avatar"></div>
+        <div>
+          <div id="accountName" style="font-size:12px;">User</div>
+          <div id="accountPlan" style="font-size:11px;color:var(--text-soft);">Free</div>
+        </div>
+      </div>
+      <button id="navLogin" class="btn ghost">Login</button>
+      <button id="navSignup" class="btn primary">Sign up</button>
+
+      <!-- settings panel removed: backend handles all AI calls -->
+    </div>
+  </header>
+
+  <!-- HOME -->
+  <section id="screen-home" class="screen">
+    <div class="home-wrap">
+      <div>
+        <div class="hero-tagline">A PLACE FOR YOUR NEXT IDEA</div>
+        <h1 class="hero-title">
+          Think, write, design and build
+          <span>with Athena AI.</span>
+        </h1>
+        <p class="hero-sub">
+          From a first thought to a finished piece. Write, research, explore your files, and build with a workspace designed to keep you focused.
+        </p>
+        <p class="hero-sub-creator">
+          Created by Luis Bernal Garcia-Malea.
+        </p>
+        <div class="hero-badges">
+          <div class="hero-badge">Chat & Research</div>
+          <div class="hero-badge">Docs & Presentations</div>
+          <div class="hero-badge">Books & Covers</div>
+          <div class="hero-badge">Images & Video</div>
+          <div class="hero-badge">AI Humanizer</div>
+        </div>
+
+        <div class="hero-actions"><button id="heroStart" class="btn primary">Start creating</button><button id="heroLogin" class="btn ghost">Sign in</button></div>
+      </div>
+      <div class="brand-showcase"><img src="assets/athena-logo.png" alt="Athena AI: owl, helmet, and gold wreath" /><small>Ideas deserve room to grow.</small></div>
+    </div>
+  </section>
+
+  <!-- LOGIN -->
+  <section id="screen-login" class="screen hidden">
+    <div class="auth-card">
+      <h2>Welcome back</h2>
+      <p class="auth-sub">Log in to continue your chats and projects.</p>
+      <form id="loginForm">
+        <label>Email</label>
+        <input type="email" name="email" required />
+        <label>Password</label>
+        <input type="password" name="password" required />
+        <label>Developer code (optional)</label>
+        <input type="text" name="devcode" placeholder="Leave blank unless provided" autocomplete="off" />
+        <button type="submit" class="btn primary" style="margin-top:16px;width:100%;">Continue</button>
+      </form>
+      <p class="auth-switch">
+        No account yet?
+        <button id="loginToSignup" class="btn link" type="button">Create one</button>
+      </p>
+      <p id="loginError" class="auth-error"></p>
+    </div>
+  </section>
+
+  <!-- SIGNUP -->
+  <section id="screen-signup" class="screen hidden">
+    <div class="auth-card">
+      <h2>Create your Athena account</h2>
+      <p class="auth-sub">One login. All modes. Your own creative OS.</p>
+      <form id="signupForm">
+        <label>Name</label>
+        <input type="text" name="name" required />
+        <label>Email</label>
+        <input type="email" name="email" required />
+        <label>Password</label>
+        <input type="password" name="password" required />
+        <label>Developer / promo code (optional)</label>
+        <input type="text" name="devcode" placeholder="Premium code (optional)" />
+        <button type="submit" class="btn primary" style="margin-top:16px;width:100%;">Create account</button>
+      </form>
+      <p class="auth-switch">
+        Already have an account?
+        <button id="signupToLogin" class="btn link" type="button">Login</button>
+      </p>
+      <p id="signupError" class="auth-error"></p>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section id="screen-app" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="sidebar-label">Core</div>
+      <button class="mode-btn active" data-mode="chat">💬 Chat</button>
+      <button class="mode-btn" data-mode="research">🔍 Research</button>
+      <button class="mode-btn" data-mode="docs">📄 Docs</button>
+      <button class="mode-btn" data-mode="code">💻 Code</button>
+
+      <!-- Code language selector -->
+      <div id="codeLangContainer" class="code-lang-container hidden">
+        <div class="code-lang-label">Language</div>
+        <div class="code-lang-row">
+          <span class="code-lang-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#d5b576" aria-hidden="true">
+              <path d="M19.14,12.94a7.14,7.14,0,0,0,.05-.94,7.14,7.14,0,0,0-.05-.94l2.11-1.65a.5.5,0,0,0,.12-.63l-2-3.46a.5.5,0,0,0-.6-.22l-2.49,1a7.28,7.28,0,0,0-1.63-.94l-.38-2.65A.5.5,0,0,0,13.7,2H10.3a.5.5,0,0,0-.49.42L9.43,5.07a7.28,7.28,0,0,0-1.63.94l-2.49-1a.5.5,0,0,0-.6.22l-2,3.46a.5.5,0,0,0,.12.63L4.94,11.06a7.14,7.14,0,0,0-.05.94,7.14,7.14,0,0,0,.05.94L2.83,14.59a.5.5,0,0,0-.12.63l2,3.46a.5.5,0,0,0,.6.22l2.49-1a7.28,7.28,0,0,0,1.63.94l.38,2.65a.5.5,0,0,0,.49.42h3.4a.5.5,0,0,0,.49-.42l.38-2.65a7.28,7.28,0,0,0,1.63-.94l2.49,1a.5.5,0,0,0,.6-.22l2-3.46a.5.5,0,0,0-.12-.63ZM12,15.5A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/>
+            </svg>
+          </span>
+          <select id="codeLanguage" class="code-lang-select">
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="HTML">HTML</option>
+            <option value="CSS">CSS</option>
+            <option value="C++">C++</option>
+            <option value="Java">Java</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="SQL">SQL</option>
+            <option value="PHP">PHP</option>
+            <option value="C#">C#</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Swift">Swift</option>
+            <option value="Kotlin">Kotlin</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="mode-btn" data-mode="math">📐 Maths / Homework</button>
+
+      <div class="sidebar-label">Author</div>
+      <button class="mode-btn" data-mode="author">📚 Book Writer</button>
+      <button class="mode-btn" data-mode="designer">📖 Book Designer</button>
+      <button class="mode-btn" data-mode="poet">✒️ Poet</button>
+
+      <div class="sidebar-label">Media</div>
+      <button class="mode-btn" data-mode="image">🖼️ Image Generator</button>
+      <button class="mode-btn" data-mode="video">🎬 Video Generator</button>
+
+      <div class="sidebar-label">Creative</div>
+      <button class="mode-btn" data-mode="script">🎬 Script Writer</button>
+      <button class="mode-btn" data-mode="humanizer">🧠 AI Humanizer</button>
+
+      <div class="sidebar-label">Business</div>
+      <button class="mode-btn" data-mode="business">💼 Business Helper</button>
+      <button class="mode-btn" data-mode="presentation">📊 Presentation</button>
+      <button class="mode-btn" data-mode="logo">✦ Logo Maker</button>
+
+      <div class="sidebar-label">Session</div>
+      <button id="newChatBtn" class="mode-btn">＋ New chat</button>
+
+      <div class="sidebar-creator">
+        Creator: Luis Bernal Garcia-Malea
+      </div>
+
+      <button id="logoutBtn" class="btn danger logout-btn">Log out</button>
+    </aside>
+
+    <main class="main-panel">
+      <header class="main-header">
+        <div>
+          <h2 id="modeTitle">Chat</h2>
+          <p id="modeDesc">Talk to Athena about anything. It adapts to your intent.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <label style="font-size:11px;color:var(--text-soft);display:flex;align-items:center;gap:4px;">
+            <input type="checkbox" id="useWebSearch" style="accent-color:#d5b576;" />
+            Use web search (Research)
+          </label>
+          <button id="downloadDocsDocxBtn" class="btn ghost" style="font-size:11px;display:none;">
+            Download Docs as .docx
+          </button>
+          <select id="languageSelect" style="padding:4px 10px;border-radius:999px;border:1px solid rgba(213,181,118,0.4);background:rgba(10,10,14,0.95);color:#f4efe5;font-size:11px;outline:none;cursor:pointer;font-family:inherit;">
+            <option value="auto">🌐 Auto</option>
+            <option value="English">🇬🇧 English</option>
+            <option value="Spanish">🇪🇸 Español</option>
+            <option value="French">🇫🇷 Français</option>
+            <option value="German">🇩🇪 Deutsch</option>
+            <option value="Italian">🇮🇹 Italiano</option>
+            <option value="Portuguese">🇵🇹 Português</option>
+            <option value="Dutch">🇳🇱 Nederlands</option>
+            <option value="Russian">🇷🇺 Русский</option>
+            <option value="Chinese">🇨🇳 中文</option>
+            <option value="Japanese">🇯🇵 日本語</option>
+            <option value="Arabic">🇸🇦 العربية</option>
+            <option value="Hindi">🇮🇳 हिंदी</option>
+            <option value="Korean">🇰🇷 한국어</option>
+          </select>
+          <div class="mode-pill">MODE: <span id="modePill">CHAT</span></div>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <!-- Chat-like layout -->
+        <div id="chatLayout">
+          <div id="messages" class="messages">
+            <div class="msg-card ai">
+              <div class="msg-meta">Athena</div>
+              <div>Choose a tool, bring your files, and start with an idea.</div>
+            </div>
+          </div>
+          <div class="input-row">
+            <textarea id="promptInput" placeholder="Ask Athena anything..."></textarea>
+            <button id="sendBtn" class="btn primary">Send ➤</button>
+          </div>
+          <p id="modeHint" class="hint">Use this for open conversation, explanations, and brainstorming.</p>
+          <div id="codePreviewPanel" class="hidden" style="margin-top:8px;border-radius:16px;border:1px solid rgba(213,181,118,0.3);overflow:hidden;height:340px;"><div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(213,181,118,0.06);border-bottom:1px solid rgba(213,181,118,0.2);"><span style="font-size:11px;color:var(--gold);font-family:var(--font-mono)">LIVE PREVIEW</span><button id="closePreviewBtn" style="font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid rgba(213,181,118,0.3);background:transparent;color:var(--text-soft);cursor:pointer;">× Close</button></div><iframe id="codePreviewFrame" title="Generated code preview" sandbox="allow-scripts" style="width:100%;height:calc(100% - 33px);background:#fff;border:none;"></iframe></div>
+        </div>
+
+        <!-- Book writer layout -->
+        <div id="bookLayout" class="hidden" style="display:flex;flex-direction:column;gap:8px;">
+          <div class="doc-toolbar">
+            <div>Book Writer · Production</div>
+            <div class="doc-actions">
+              <button id="bookStartBtn" class="btn primary" style="font-size:11px;">Start book</button>
+              <button id="bookContinueBtn" class="btn ghost" style="font-size:11px;" disabled>Continue writing</button>
+              <button id="bookNextChapterBtn" class="btn ghost" style="font-size:11px;" disabled>Next chapter</button>
+              <button id="bookCompileBtn" class="btn ghost" style="font-size:11px;" disabled>Compile book</button>
+              <button id="bookClearBtn" class="btn danger" style="font-size:11px;">Clear</button>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-size:12px;">
+            <div>
+              <label style="font-size:11px;color:var(--text-soft);">Chapters</label>
+              <input id="bookChapters" type="number" min="1" value="10"
+                style="width:100%;border-radius:10px;border:1px solid var(--border);background:#17202f;color:var(--text);padding:6px 8px;font-size:12px;"/>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--text-soft);">Words / chapter</label>
+              <input id="bookWordsPerChapter" type="number" min="200" value="1500"
+                style="width:100%;border-radius:10px;border:1px solid var(--border);background:#17202f;color:var(--text);padding:6px 8px;font-size:12px;"/>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--text-soft);">Writing type</label>
+              <input id="bookWritingType" type="text" value="Third-person, cinematic, fast-paced"
+                style="width:100%;border-radius:10px;border:1px solid var(--border);background:#17202f;color:var(--text);padding:6px 8px;font-size:12px;"/>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:12px;margin-top:4px;">
+            <div>
+              <label style="font-size:11px;color:var(--text-soft);">Title</label>
+              <input id="bookTitleInput" type="text" placeholder="Working title"
+                style="width:100%;border-radius:10px;border:1px solid var(--border);background:#17202f;color:var(--text);padding:6px 8px;font-size:12px;"/>
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--text-soft);">Genre</label>
+              <input id="bookGenreInput" type="text" placeholder="Sci-fi, fantasy, thriller..."
+                style="width:100%;border-radius:10px;border:1px solid var(--border);background:#17202f;color:var(--text);padding:6px 8px;font-size:12px;"/>
+            </div>
+          </div>
+
+          <div style="margin-top:4px;">
+            <label style="font-size:11px;color:var(--text-soft);">Description</label>
+            <textarea id="bookDescriptionInput" placeholder="Describe the core idea, main character, conflict, and tone..."
+              style="width:100%;border-radius:10px;border:1px solid var(--border);background:#17202f;color:var(--text);padding:6px 8px;font-size:12px;min-height:60px;resize:vertical;"></textarea>
+          </div>
+
+          <div style="margin-top:4px;">
+            <label style="font-size:11px;color:var(--text-soft);">Extra notes</label>
+            <textarea id="bookPromptInput" placeholder="Optional: extra notes for the book (tone, pacing, POV)..."
+              style="width:100%;border-radius:10px;border:1px solid var(--border);background:#17202f;color:var(--text);padding:6px 8px;font-size:12px;min-height:50px;resize:vertical;"></textarea>
+          </div>
+
+          <div class="doc-surface" id="bookViewer">
+            <div id="bookTitleDisplay" class="doc-title">Your book title</div>
+            <div id="bookSubtitleDisplay" class="doc-subtitle">No chapters yet. Click “Start book”.</div>
+            <div id="bookBubbles"></div>
+          </div>
+
+          <p class="hint">Athena will write chapter by chapter, in parts. Use Continue / Next chapter / Compile when you want.</p>
+        </div>
+
+        <!-- Book designer layout -->
+        <div id="designerLayout" class="hidden" style="display:flex;flex-direction:column;gap:8px;">
+          <div class="designer-grid">
+            <div class="designer-card">
+              <div class="designer-title">Front cover concept</div>
+              <div id="frontCoverText" class="designer-body">
+                Generate some book content first in Book Writer. Then Athena will design a front cover concept here.
+              </div>
+            </div>
+            <div class="designer-card">
+              <div class="designer-title">Back cover blurb</div>
+              <div id="backCoverText" class="designer-body">
+                The back cover will summarize the book and highlight the hook once Book Writer has content.
+              </div>
+            </div>
+          </div>
+          <div class="input-row" style="margin-top:8px;">
+            <textarea id="designerPromptInput" placeholder="Optional: extra notes for the cover (tone, style, audience)..."></textarea>
+            <button id="designerBtn" class="btn primary">Generate covers ➤</button>
+          </div>
+          <p class="hint">Uses your latest Book Writer content plus your notes.</p>
+        </div>
+
+        <!-- Media layout -->
+        <div id="mediaLayout" class="hidden">
+          <div id="mediaMessages" class="messages">
+            <div class="msg-card ai">
+              <div class="msg-meta">Athena · Media</div>
+              <div>Describe your idea. Choose a format, or add a reference image.</div>
+            </div>
+          </div>
+          <div id="mediaPreview" class="media-preview">
+            No media generated yet.
+          </div>
+          <div class="input-row" style="margin-top:8px;">
+            <textarea id="mediaPromptInput" placeholder="Describe the image or video you want..."></textarea>
+            <button id="mediaSendBtn" class="btn primary">Generate ➤</button>
+          </div>
+          <p id="mediaHint" class="hint">
+            Provider access and free quotas determine which media tools are available.
+          </p>
+        </div>
+
+        <!-- Script Writer layout -->
+        <div id="scriptLayout" class="hidden">
+          <div id="scriptMessages" class="messages">
+            <div class="msg-card ai"><div class="msg-meta">Athena · Script Writer</div><div>Choose your script type: Screenplay, Stage Play, YouTube, Podcast, or TV. Then describe your story.</div></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+            <button class="script-type-btn btn ghost" data-type="YouTube Script" style="font-size:11px;">▶ YouTube</button>
+            <button class="script-type-btn btn ghost" data-type="Screenplay" style="font-size:11px;">🎬 Screenplay</button>
+            <button class="script-type-btn btn ghost" data-type="Podcast Script" style="font-size:11px;">🎙 Podcast</button>
+            <button class="script-type-btn btn ghost" data-type="Stage Play" style="font-size:11px;">🎭 Stage Play</button>
+            <button class="script-type-btn btn ghost" data-type="TV Script" style="font-size:11px;">📺 TV</button>
+            <button id="downloadScriptBtn" class="btn ghost" style="font-size:11px;margin-left:auto;">⬇ Download Script</button>
+          </div>
+          <div class="input-row" style="margin-top:6px;">
+            <textarea id="scriptInput" placeholder="Describe your story, characters, and setting..."></textarea>
+            <button id="scriptSendBtn" class="btn primary">Write ➤</button>
+          </div>
+          <p class="hint">Athena writes in professional industry format. Select type first, then describe.</p>
+        </div>
+
+        <!-- Presentation layout -->
+        <div id="presentationLayout" class="hidden">
+          <div id="presMessages" class="messages">
+            <div class="msg-card ai"><div class="msg-meta">Athena · Presentation</div><div>Tell me the topic, audience, number of slides, and purpose. I will create a complete polished slide deck.</div></div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button id="downloadPresBtn" class="btn ghost" style="font-size:11px;">⬇ Download PowerPoint</button>
+          </div>
+          <div class="input-row" style="margin-top:6px;">
+            <textarea id="presInput" placeholder="Topic, audience, number of slides, purpose..."></textarea>
+            <button id="presSendBtn" class="btn primary">Create ➤</button>
+          </div>
+          <p class="hint">Include topic, target audience, and number of slides for best results.</p>
+        </div>
+
+        <!-- Logo Maker layout -->
+        <div id="logoLayout" class="hidden">
+          <div id="logoMessages" class="messages">
+            <div class="msg-card ai"><div class="msg-meta">Athena · Logo Maker</div><div>Tell me about your brand: name, industry, values, and style preferences. I will create detailed logo concepts and generate visual previews.</div></div>
+          </div>
+          <div id="logoPreviewArea" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:6px;"></div>
+          <div class="input-row" style="margin-top:6px;">
+            <textarea id="logoInput" placeholder="Brand name, industry, style, colors, values..."></textarea>
+            <button id="logoSendBtn" class="btn primary">Design ➤</button>
+          </div>
+          <p class="hint">Athena creates concepts + generates visual previews. Free to try; provider limits may apply.</p>
+        </div>
+
+        <!-- Business layout -->
+        <div id="businessLayout" class="hidden">
+          <div id="bizMessages" class="messages">
+            <div class="msg-card ai"><div class="msg-meta">Athena · Business Helper</div><div>Your senior business consultant. Ask about strategy, marketing, finance, operations, growth — anything business-related.</div></div>
+          </div>
+          <div class="input-row" style="margin-top:6px;">
+            <textarea id="bizInput" placeholder="Describe your business challenge or question..."></textarea>
+            <button id="bizSendBtn" class="btn primary">Advise ➤</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </section>
+
+  <footer class="footer">
+    © Athena AI — Created by Luis Bernal Garcia-Malea
+  </footer>
+
+  <script>
+    // ================================================================
+    // ATHENA AI v9 — Complete, production frontend
+    // ================================================================
+    // The deployed backend is kept in one place. You can override it before this
+    // file loads with: window.NEURON_BACKEND_URL = "https://your-backend.vercel.app"
+    const BACKEND_ORIGIN  = (window.NEURON_BACKEND_URL || "https://neuron-backend-v2.vercel.app").replace(/\/+$/, "");
+    const BACKEND         = BACKEND_ORIGIN + "/api/chat";
+    const BACKEND_SEARCH  = BACKEND_ORIGIN + "/api/search";
+    const BACKEND_IMAGE   = BACKEND_ORIGIN + "/api/image";
+    const BACKEND_VIDEO   = BACKEND_ORIGIN + "/api/video";
+    const BACKEND_VIDEO_STATUS = BACKEND_ORIGIN + "/api/video-status";
+    const BACKEND_AUTH    = BACKEND_ORIGIN + "/api/auth";
+    const BACKEND_HEALTH  = BACKEND_ORIGIN + "/api/health";
+    const PLAN_FREE="Free", PLAN_PRO="Pro", PLAN_PREMIUM="Premium";
+
+    // Creator recognition
+    // Access control must be enforced by the backend, never by browser code.
+    const CREATOR_EMAIL = "";
+    function isPremiumCode(){ return false; }
+    function isCreatorCode(){ return false; }
+
+    // ================================================================
+    // TOAST
+    // ================================================================
+    function toast(msg,type="info",dur=3500){
+      let box=document.getElementById("toastCt");
+      if(!box){box=document.createElement("div");box.id="toastCt";box.style.cssText="position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999";document.body.appendChild(box);}
+      const el=document.createElement("div");
+      const c={success:"rgba(80,200,120,0.8)",error:"rgba(255,75,107,0.8)",info:"rgba(213,181,118,0.8)"};
+      el.style.cssText=`padding:10px 18px;border-radius:999px;font-size:13px;font-family:inherit;background:rgba(5,5,7,0.97);color:#f4efe5;border:1px solid ${c[type]||c.info};box-shadow:0 8px 24px rgba(0,0,0,0.9);animation:toastIn .2s ease-out`;
+      el.textContent=msg;box.appendChild(el);
+      setTimeout(()=>{el.style.transition="opacity .3s";el.style.opacity="0";setTimeout(()=>el.remove(),300);},dur);
+    }
+
+    // ================================================================
+    // MARKDOWN
+    // ================================================================
+    function renderMD(text){ return window.Athena ? Athena.renderMarkdown(text) : "<p>"+escH(text)+"</p>"; }
+    window.copyPre=function(btn){
+      const code=btn.closest(".cb, .compact-code")?.querySelector("code")?.textContent||"";
+      navigator.clipboard.writeText(code).then(()=>{btn.textContent="✓";setTimeout(()=>btn.textContent="Copy",2000)});
+    };
+
+    // ================================================================
+    // AUTH — localStorage (rock solid)
+    // ================================================================
+    const ACCOUNTS_KEY="neuron_accounts_v2", SESSION_KEY="neuron_session_v2";
+    function getAllAccounts(){try{return JSON.parse(localStorage.getItem(ACCOUNTS_KEY))||{};}catch{return{};}}
+    function saveAccount(u){const a=getAllAccounts();a[u.email]=u;localStorage.setItem(ACCOUNTS_KEY,JSON.stringify(a));}
+    function getAccountByEmail(e){return getAllAccounts()[e]||null;}
+    function getCurrentUser(){try{return JSON.parse(localStorage.getItem(SESSION_KEY));}catch{return null;}}
+    function setCurrentUser(u){localStorage.setItem(SESSION_KEY,JSON.stringify(u));saveAccount(u);}
+    function clearCurrentUser(){localStorage.removeItem(SESSION_KEY);}
+    function simpleHash(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return"nh_"+Math.abs(h).toString(36)+"_"+s.length;}
+
+    // ================================================================
+    // CHAT HISTORY
+    // ================================================================
+    const CHATS_KEY="neuron_chats_v2";
+    function getAllChats(){try{return JSON.parse(localStorage.getItem(CHATS_KEY))||[];}catch{return[];}}
+    function saveChat(c){let a=getAllChats();const i=a.findIndex(x=>x.id===c.id);if(i>=0)a[i]=c;else a.unshift(c);localStorage.setItem(CHATS_KEY,JSON.stringify(a.slice(0,25)));}
+    function deleteChat(id){localStorage.setItem(CHATS_KEY,JSON.stringify(getAllChats().filter(c=>c.id!==id)));}
+
+    // BOOKS storage
+    const BOOKS_KEY="neuron_books_v1";
+    function getAllBooks(){try{return JSON.parse(localStorage.getItem(BOOKS_KEY))||[];}catch{return[];}}
+    function saveBook(b){let a=getAllBooks();const i=a.findIndex(x=>x.id===b.id);if(i>=0)a[i]=b;else a.unshift(b);localStorage.setItem(BOOKS_KEY,JSON.stringify(a.slice(0,20)));}
+    function renderBookList(){
+      const el=document.getElementById("savedBooksList");if(!el)return;
+      const books=getAllBooks();
+      if(!books.length){el.innerHTML="<div style='font-size:11px;color:var(--text-soft);padding:4px 8px;opacity:.6'>No saved books</div>";return;}
+      el.innerHTML=books.map(b=>`<div class="history-item" onclick="loadBook('${b.id}')"><div class="history-title">${escH(b.title||"Untitled")}</div><div class="history-meta">${b.chapters} ch · ${timeAgo(b.updatedAt)}</div><button class="history-del" onclick="event.stopPropagation();deleteBookById('${b.id}')" title="Delete">×</button></div>`).join("");
+    }
+    window.loadBook=function(id){
+      const b=getAllBooks().find(x=>x.id===id);if(!b)return;
+      currentBookId=b.id;
+      bookChunks=b.chunks||[];
+      lastBookTitle=b.title;lastBookSub=b.subtitle||"";
+      curChap=b.currentChapter||0;totChap=b.totalChapters||0;
+      document.getElementById("bookTitleDisplay").textContent=lastBookTitle;
+      document.getElementById("bookSubtitleDisplay").textContent=lastBookSub;
+      document.getElementById("bookBubbles").innerHTML="";
+      bookChunks.forEach(c=>addBookBubble(c.chapter,c.part,c.text));
+      document.getElementById("bookCompileBtn").disabled=false;
+      toast("Book loaded: "+b.title,"success");
+    };
+    window.deleteBookById=function(id){if(getAllBooks().find(x=>x.id===id)){deleteBookEntry(id);renderBookList();}};
+    function deleteBookEntry(id){localStorage.setItem(BOOKS_KEY,JSON.stringify(getAllBooks().filter(b=>b.id!==id)));}
+
+    let currentBookId=null;
+
+    function escH(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+    function timeAgo(ts){if(!ts)return"";const d=(Date.now()-ts)/1000;if(d<60)return"just now";if(d<3600)return Math.floor(d/60)+"m ago";if(d<86400)return Math.floor(d/3600)+"h ago";return Math.floor(d/86400)+"d ago";}
+
+    let activeChat={id:null,mode:"chat",messages:[],title:"New chat"};
+    function newChatSession(mode){activeChat={id:"c_"+Date.now(),mode:mode||currentMode,messages:[],title:"New chat"};}
+    function saveActiveChat(){
+      if(!activeChat.id||!activeChat.messages.length)return;
+      const fu=activeChat.messages.find(m=>m.role==="user");
+      if(fu)activeChat.title=fu.content.slice(0,50)+(fu.content.length>50?"...":"");
+      activeChat.updatedAt=Date.now();activeChat.mode=currentMode;
+      saveChat({...activeChat});
+    }
+    function renderChatHistory(){
+      const el=document.getElementById("chatHistoryList");if(!el)return;
+      const chats=getAllChats();
+      if(!chats.length){el.innerHTML="<div style='font-size:11px;color:var(--text-soft);padding:4px 8px;opacity:.6'>No recent chats</div>";return;}
+      el.innerHTML=chats.map(c=>`<div class="history-item" data-id="${c.id}" onclick="loadChat('${c.id}')"><div class="history-title">${escH(c.title)}</div><div class="history-meta">${c.mode||"chat"} · ${timeAgo(c.updatedAt)}</div><button class="history-del" onclick="event.stopPropagation();delChat('${c.id}')" title="Delete">×</button></div>`).join("");
+    }
+    window.loadChat=function(id){
+      const c=getAllChats().find(x=>x.id===id);if(!c)return;
+      window.Athena?.modeChanged(c.mode||"chat",true);
+      activeChat={...c};chatHistory=c.messages.slice();
+      messagesEl.innerHTML="";
+      c.messages.forEach(m=>{
+        const card=document.createElement("div");card.className="msg-card "+(m.role==="user"?"user":"ai");
+        const meta=document.createElement("div");meta.className="msg-meta";
+        meta.innerHTML=m.role==="user"?"You":`<span style="color:var(--gold)">✦ Athena</span>`;
+        const body=document.createElement("div");body.className="msg-body";
+        if(m.role==="assistant"){body.classList.add("md-content");body.innerHTML=renderMD(m.content);if(c.mode==="code"&&window.Athena)Athena.presentCode(m.content,body);}
+        else body.textContent=m.content;
+        card.appendChild(meta);card.appendChild(body);messagesEl.appendChild(card);
+      });
+      messagesEl.scrollTop=messagesEl.scrollHeight;
+      modeButtons.forEach(b=>b.classList.remove("active"));
+      document.querySelector('[data-mode="chat"]')?.classList.add("active");
+      setMode(c.mode||"chat",false);
+      if(c.mode==="code"&&window.Athena){const last=[...c.messages].reverse().find(m=>m.role==="assistant");if(last)Athena.presentCode(last.content);}
+      toast("Chat loaded","info",2000);
+    };
+    window.delChat=function(id){deleteChat(id);if(activeChat.id===id){newChatSession();chatHistory=[];messagesEl.innerHTML="";}renderChatHistory();};
+
+    // ================================================================
+    // DOM REFS
+    // ================================================================
+    const navLogin=document.getElementById("navLogin"),navSignup=document.getElementById("navSignup");
+    const planLabel=document.getElementById("planLabel"),accountPill=document.getElementById("accountPill");
+    const accountName=document.getElementById("accountName"),accountPlan=document.getElementById("accountPlan");
+    const screens={home:document.getElementById("screen-home"),login:document.getElementById("screen-login"),signup:document.getElementById("screen-signup"),app:document.getElementById("screen-app")};
+    function showScreen(n){Object.values(screens).forEach(s=>s.classList.add("hidden"));screens[n].classList.remove("hidden");}
+
+    function updateNav(){
+      const u=getCurrentUser();
+      if(u){
+        planLabel.textContent=u.plan||PLAN_FREE;accountName.textContent=u.name;accountPlan.textContent=u.plan||PLAN_FREE;
+        accountPill.classList.remove("hidden");navLogin.classList.add("hidden");navSignup.classList.add("hidden");
+        // Creator badge
+        if(u.isCreator){
+          accountPill.style.borderColor="var(--gold)";
+          accountPill.title="Creator — Luis Bernal Garcia-Malea";
+        }
+      } else {
+        planLabel.textContent=PLAN_FREE;accountPill.classList.add("hidden");
+        navLogin.classList.remove("hidden");navSignup.classList.remove("hidden");
+      }
+    }
+    navLogin.onclick=()=>showScreen("login");navSignup.onclick=()=>showScreen("signup");
+
+    let currentLanguage="auto";
+    const langSel=document.getElementById("languageSelect");
+    if(langSel){
+      langSel.addEventListener("change",()=>{
+        currentLanguage=langSel.value;
+        const label=langSel.options[langSel.selectedIndex].text;
+        toast("🌐 Language: "+label,"info",2000);
+        console.log("Language set to:",currentLanguage);
+      });
+    } else {
+      console.warn("languageSelect element not found");
+    }
+
+    // ================================================================
+    // PRICING
+    // ================================================================
+    // AUTH
+    // ================================================================
+    document.getElementById("loginToSignup").onclick=()=>showScreen("signup");
+    document.getElementById("signupToLogin").onclick=()=>showScreen("login");
+
+    async function authRequest(payload){
+      let response;
+      try{
+        response=await fetch(BACKEND_AUTH,{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Accept":"application/json"},
+          body:JSON.stringify(payload)
+        });
+      }catch(e){
+        const err=new Error("Authentication service unavailable. Please try again.");
+        err.network=true;throw err;
+      }
+      let data={};
+      try{data=await response.json();}catch{}
+      if(!response.ok){const err=new Error(data.error||"Authentication failed.");err.status=response.status;throw err;}
+      return data;
+    }
+
+    function enterAuthenticatedUser(serverUser,password){
+      const email=String(serverUser.email||"").toLowerCase();
+      const isCreator=Boolean(CREATOR_EMAIL)&&email===CREATOR_EMAIL;
+      const user={
+        name:serverUser.name,email,
+        password:password?simpleHash(password):"",
+        plan:serverUser.plan||PLAN_FREE,
+        isDeveloper:Boolean(serverUser.isDeveloper),
+        isCreator,
+        createdAt:Date.now()
+      };
+      setCurrentUser(user);return user;
+    }
+
+    function openAuthenticatedSession(user,welcome){
+      updateNav();newChatSession("chat");showScreen("app");renderChatHistory();renderBookList();
+      setTimeout(()=>addMessage(welcome,"ai"),200);
+      toast("Welcome, "+(user.name||"creator")+"!","success");
+    }
+
+    document.getElementById("signupForm").addEventListener("submit",async e=>{
+      e.preventDefault();
+      const form=new FormData(e.target);
+      const name=String(form.get("name")||"").trim(),email=String(form.get("email")||"").trim().toLowerCase();
+      const password=String(form.get("password")||""),devcode=String(form.get("devcode")||"").trim();
+      const errEl=document.getElementById("signupError");errEl.textContent="";
+      if(!name||!email||!password){errEl.textContent="All fields are required.";return;}
+      if(password.length<6){errEl.textContent="Password must be at least 6 characters.";return;}
+      const submit=e.target.querySelector("button[type=submit]");if(submit)submit.disabled=true;
+      try{
+        const result=await authRequest({action:"register",name,email,password,developerCode:devcode||undefined});
+        const user=enterAuthenticatedUser(result.user,password);
+        const welcome=user.isDeveloper?"Developer access activated. Welcome to Athena Premium.":"Welcome to Athena, "+name+"! 🎉 Powered by Athena AI. What are we creating today?";
+        openAuthenticatedSession(user,welcome);
+      }catch(err){
+        errEl.textContent=err.message;
+      }finally{if(submit)submit.disabled=false;}
+    });
+
+    document.getElementById("loginForm").addEventListener("submit",async e=>{
+      e.preventDefault();
+      const form=new FormData(e.target);
+      const email=String(form.get("email")||"").trim().toLowerCase(),password=String(form.get("password")||""),devcode=String(form.get("devcode")||"").trim();
+      const errEl=document.getElementById("loginError");errEl.textContent="";
+      const submit=e.target.querySelector("button[type=submit]");if(submit)submit.disabled=true;
+      try{
+        let result=await authRequest({action:"login",email,password});
+        if(devcode){
+          result=await authRequest({action:"activateDeveloper",email,password,developerCode:devcode});
+        }
+        const user=enterAuthenticatedUser(result.user,password);
+        const welcome=user.isDeveloper?"Premium developer access is active. Welcome back.":"Welcome back, "+user.name+"! Ready?";
+        openAuthenticatedSession(user,welcome);
+      }catch(err){
+        // Preserve old local-only accounts only when the backend cannot be reached.
+        const account=getAccountByEmail(email);
+        if(err.network&&account&&account.password===simpleHash(password)&&!devcode){
+          setCurrentUser(account);openAuthenticatedSession(account,"Welcome back, "+account.name+"! Ready?");
+        }else errEl.textContent=err.message;
+      }finally{if(submit)submit.disabled=false;}
+    });
+
+    document.getElementById("logoutBtn").onclick=()=>{
+      window.Athena?.modeChanged("chat",true);
+      saveActiveChat();clearCurrentUser();chatHistory=[];messagesEl.innerHTML="";updateNav();showScreen("home");toast("Logged out.","info");
+    };
+
+    // ================================================================
+    // BACKEND CALL
+    // ================================================================
+    async function callBackend(mode,prompt,plan,history,searchResults,attachments=[],signal){
+      const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),55000);
+      const abort=()=>controller.abort();if(signal?.aborted)controller.abort();signal?.addEventListener('abort',abort,{once:true});
+      try {
+        const payload={message:String(prompt||'').slice(0,24000),history:(history||[]).slice(-30),searchResults:searchResults||[],language:currentLanguage,provider:localStorage.getItem('athena_provider')||'auto',attachments};
+        const response=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode,payload}),signal:controller.signal,cache:'no-store'});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok)throw Error(data.error||'The request could not be completed.');
+        if(!(data.reply||data.content))throw Error('The provider returned no answer.');
+        if(data.truncated)toast('The response reached the model limit. Ask Athena to continue.','info',5000);
+        return data.reply||data.content;
+      }finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
+    }
+
+    async function doWebSearch(q,signal){
+      const response=await fetch(BACKEND_SEARCH+'?q='+encodeURIComponent(String(q).slice(0,300)),{signal:signal||AbortSignal.timeout(10000),cache:'no-store'});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw Error(data.error||'Web search failed. Disable web search to continue without live sources.');
+      return Array.isArray(data.results)?data.results:[];
+    }
+
+    // Image generation handled via the secure /api/image backend
+
+    // ================================================================
+    // MODES CONFIG
+    // ================================================================
+    const modeConfig={
+      chat:        {title:"Chat",          desc:"Athena AI — intelligent conversation, adapts to anything.",                  hint:"Ask anything. Markdown rendered. Conversation memory within session.",              placeholder:"Ask Athena anything..."},
+      research:    {title:"Research",      desc:"Athena AI + live web search — deep analysis on any topic.",                  hint:"Toggle 'Web search' above for live internet results.",                            placeholder:"What should Athena research?"},
+      docs:        {title:"Docs",          desc:"Athena AI — writes and refines documents, essays, reports.",                 hint:"Describe what you need or paste a draft. Download as .docx when ready.",           placeholder:"Describe the document or paste a draft..."},
+      code:        {title:"Code",          desc:"Athena AI — senior engineer-level code with live preview.",                  hint:"Choose language below. HTML/CSS/JS shows a live preview. Ask to build or debug.",   placeholder:"Describe what you want to build or debug..."},
+      math:        {title:"Maths",         desc:"Athena AI — step-by-step problem solving.",                                  hint:"Write the problem clearly. Every step will be shown.",                             placeholder:"Write your maths problem here..."},
+      author:      {title:"Book Writer",   desc:"Athena AI — professional prose, chapter by chapter. Books are saved.",      hint:"Fill the planner and hit Start. Books auto-save. Load from history.",               placeholder:"Extra notes for this chapter..."},
+      designer:    {title:"Book Designer", desc:"Athena AI — front and back cover concepts.",                                hint:"Requires Book Writer content. Add extra direction if needed.",                      placeholder:"Extra notes for the cover design..."},
+      script:      {title:"Script Writer", desc:"Athena AI — professional scripts: screenplay, YouTube, podcast, TV.",       hint:"Select script type above, then describe your story and characters.",                placeholder:"Describe your story, characters, and setting..."},
+      poet:        {title:"Poet",          desc:"Athena AI — original poems and lyrics.",                                    hint:"Describe mood, style, and subject. Athena writes like it means it.",                placeholder:"Describe the poem or lyrics..."},
+      image:       {title:"Image Gen",     desc:"AI image generation through the secure backend.",                         hint:"Be descriptive: style, mood, lighting, and composition. Provider limits may apply.",  placeholder:"Describe the image in detail..."},
+      video:       {title:"Video Director",desc:"Athena AI — cinematic scenes rendered into a complete video.",                       hint:"Describe the story or vibe. Each scene is visualized and rendered asynchronously.",                placeholder:"Describe the video or scene..."},
+      humanizer:   {title:"Humanizer",     desc:"Athena AI — makes AI text sound genuinely human.",                         hint:"Paste any AI-generated text. Athena rewrites it to sound authentically human.",      placeholder:"Paste the AI text to humanize..."},
+      logo:        {title:"Logo Maker",    desc:"Athena AI concepts + AI visual generation — brand identity design.",        hint:"Describe your brand: name, industry, style, values. Get concepts + visual previews when the image provider is available.", placeholder:"Brand name, industry, style, colors, values..."},
+      presentation:{title:"Presentation",  desc:"Athena AI — complete polished slide decks. Download as outline.",          hint:"Include topic, audience, and number of slides for best results.",                    placeholder:"Topic, audience, number of slides, purpose..."},
+      business:    {title:"Business",      desc:"Athena AI — senior consultant-level business strategy and advice.",        hint:"Ask about strategy, marketing, finance, operations, growth planning.",               placeholder:"Describe your business challenge or question..."}
+    };
+
+    let currentMode="chat",chatHistory=[],lastDocsContent="",lastScriptContent="",lastPresContent="",isSending=false;
+
+    const modeButtons     =document.querySelectorAll(".mode-btn[data-mode]");
+    const modeTitleEl     =document.getElementById("modeTitle"),modeDescEl=document.getElementById("modeDesc");
+    const modePillEl      =document.getElementById("modePill"),modeHintEl=document.getElementById("modeHint");
+    const messagesEl      =document.getElementById("messages"),promptInput=document.getElementById("promptInput");
+    const sendBtn         =document.getElementById("sendBtn"),downloadDocsDocxBtn=document.getElementById("downloadDocsDocxBtn");
+    const codeLangContainer=document.getElementById("codeLangContainer"),codeLanguageSelect=document.getElementById("codeLanguage");
+    const useWebSearch    =document.getElementById("useWebSearch");
+    const codePreviewPanel=document.getElementById("codePreviewPanel"),codePreviewFrame=document.getElementById("codePreviewFrame");
+
+    const allLayouts=["chatLayout","bookLayout","designerLayout","mediaLayout","scriptLayout","presentationLayout","logoLayout","businessLayout"];
+
+    function setMode(mode,clearHist=true){
+      if(clearHist&&mode!==currentMode){saveActiveChat();newChatSession(mode);chatHistory=[];messagesEl.innerHTML="";lastDocsContent="";}
+      currentMode=mode;
+      document.dispatchEvent(new CustomEvent("athena:mode",{detail:{mode,reset:clearHist}}));
+      const cfg=modeConfig[mode]||modeConfig.chat;
+      modeTitleEl.textContent=cfg.title;modeDescEl.textContent=cfg.desc;
+      modePillEl.textContent=mode.toUpperCase();modeHintEl.textContent=cfg.hint;
+      promptInput.placeholder=cfg.placeholder;
+
+      allLayouts.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add("hidden");});
+      const mediaLayout=document.getElementById("mediaLayout");
+
+      if(mode==="author")document.getElementById("bookLayout").classList.remove("hidden");
+      else if(mode==="designer")document.getElementById("designerLayout").classList.remove("hidden");
+      else if(mode==="image"||mode==="video"){if(mediaLayout)mediaLayout.classList.remove("hidden");}
+      else if(mode==="script")document.getElementById("scriptLayout").classList.remove("hidden");
+      else if(mode==="presentation")document.getElementById("presentationLayout").classList.remove("hidden");
+      else if(mode==="logo")document.getElementById("logoLayout").classList.remove("hidden");
+      else if(mode==="business")document.getElementById("businessLayout").classList.remove("hidden");
+      else document.getElementById("chatLayout").classList.remove("hidden");
+
+      downloadDocsDocxBtn.style.display=mode==="docs"?"inline-flex":"none";
+      codeLangContainer.classList.toggle("hidden",mode!=="code");
+      if(mode!=="code"&&codePreviewPanel)codePreviewPanel.classList.add("hidden");
+
+      const intros={
+        chat:"Chat mode — Athena AI. What's on your mind?",
+        research:"Research mode. Toggle 'Web search' for live internet results. What should I research?",
+        docs:"Docs mode. Describe the document you want. I'll write it — download as .docx when done.",
+        code:"Code mode. Tell me what to build, debug, or explain. HTML/CSS/JS will show a live preview.",
+        math:"Maths mode. Give me any problem and I'll solve it step by step with full working.",
+        script:"Script Writer. Select a script type above, then describe your story. I write in professional format.",
+        poet:"Poet mode. Tell me the mood, theme, and style.",
+        humanizer:"Humanizer. Paste any AI text and I'll rewrite it to sound genuinely human.",
+        video:"Video Director. Describe your vision for a cinematic video with generated scenes.",
+        logo:"Logo Maker. Tell me about your brand and I'll create concepts + generate visual previews.",
+        presentation:"Presentation. Tell me the topic, audience, and number of slides.",
+        business:"Business Helper. Ask me anything about strategy, marketing, finance, or growth."
+      };
+      if(intros[mode]&&clearHist)addMessage(intros[mode],"ai",false);
+      if(window.Athena)Athena.modeChanged(mode,false);
+    }
+
+    modeButtons.forEach(btn=>btn.addEventListener("click",()=>{
+      modeButtons.forEach(b=>b.classList.remove("active"));btn.classList.add("active");setMode(btn.dataset.mode);
+    }));
+
+    document.getElementById("newChatBtn").onclick=()=>{
+      saveActiveChat();newChatSession(currentMode);chatHistory=[];messagesEl.innerHTML="";renderChatHistory();
+      window.Athena?.modeChanged(currentMode,true);
+      addMessage("New conversation. What are we working on?","ai",false);
+    };
+
+    // Code preview
+    if(document.getElementById("closePreviewBtn")){
+      document.getElementById("closePreviewBtn").onclick=()=>codePreviewPanel.classList.add("hidden");
+    }
+
+    // ================================================================
+    // MESSAGES
+    // ================================================================
+    function addMessage(text,role,isMD=true){
+      const card=document.createElement("div");card.className="msg-card "+role;
+      const meta=document.createElement("div");meta.className="msg-meta";
+      const ts=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+      meta.innerHTML=role==="user"?"You · "+ts:`<span style="color:var(--gold)">✦ Athena</span> · `+ts;
+      const body=document.createElement("div");body.className="msg-body";
+      if(role==="ai"&&isMD){body.classList.add("md-content");body.innerHTML=renderMD(text);}
+      else body.textContent=text;
+      if(role==="ai"&&isMD&&currentMode==="code"&&window.Athena)Athena.presentCode(text,body);
+      card.appendChild(meta);card.appendChild(body);
+      if(role==="ai"&&text.length>30){
+        const ac=document.createElement("div");ac.className="msg-actions";
+        const cb=document.createElement("button");cb.className="copy-btn";cb.textContent="Copy";
+        cb.onclick=()=>navigator.clipboard.writeText(text).then(()=>{cb.textContent="✓ Copied";setTimeout(()=>cb.textContent="Copy",2000)});
+        ac.appendChild(cb);card.appendChild(ac);
+      }
+      messagesEl.appendChild(card);messagesEl.scrollTop=messagesEl.scrollHeight;
+      if(["chat","research","docs","code","math","humanizer","poet"].includes(currentMode)){
+        chatHistory.push({role:role==="user"?"user":"assistant",content:text});
+        activeChat.messages=chatHistory.slice();
+      }
+    }
+
+    function addThinking(label,container){
+      const el=container||messagesEl;
+      const card=document.createElement("div");card.className="msg-card ai";
+      card.innerHTML=`<div class="msg-meta"><span style="color:var(--gold)">✦ Athena</span> · ${label||"thinking"}</div><div class="thinking"><div class="thinking-dot"></div><div class="thinking-dot"></div><div class="thinking-dot"></div></div>`;
+      el.appendChild(card);el.scrollTop=el.scrollHeight;return card;
+    }
+
+    function addMsgTo(container,text,role,isMD=false){
+      const card=document.createElement("div");card.className="msg-card "+role;
+      const meta=document.createElement("div");meta.className="msg-meta";
+      meta.innerHTML=role==="user"?"You":`<span style="color:var(--gold)">✦ Athena</span>`;
+      const body=document.createElement("div");body.className="msg-body";
+      if(role==="ai"&&isMD){body.classList.add("md-content");body.innerHTML=renderMD(text);}
+      else body.textContent=text;
+      card.appendChild(meta);card.appendChild(body);container.appendChild(card);container.scrollTop=container.scrollHeight;
+    }
+
+    // ================================================================
+    // SEND MAIN MESSAGE
+    // ================================================================
+    sendBtn.addEventListener("click",sendMessage);
+    promptInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey){e.preventDefault();sendMessage();}});
+
+    async function sendMessage(){ return window.Athena?.send(); }
+
+    // SCRIPT WRITER
+    // ================================================================
+    let currentScriptType="YouTube Script";
+    document.querySelectorAll(".script-type-btn").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        document.querySelectorAll(".script-type-btn").forEach(b=>b.classList.remove("primary"));
+        btn.classList.add("primary");currentScriptType=btn.dataset.type;
+        toast("Script type: "+currentScriptType,"info",1500);
+      });
+    });
+    document.getElementById("scriptSendBtn")?.addEventListener("click",async()=>{
+      const user=getCurrentUser();if(!user){toast("Log in first","error");return;}
+      const input=document.getElementById("scriptInput");
+      const text=input.value.trim();if(!text)return;
+      const container=document.getElementById("scriptMessages");
+      addMsgTo(container,text,"user");input.value="";
+      const think=addThinking("writing "+currentScriptType+"...",container);
+      try{
+        const prompt="Write a "+currentScriptType+" in proper professional format about: "+text;
+        const reply=await callBackend("script",prompt,user.plan,[],[]);
+        think.remove();lastScriptContent=reply;
+        addMsgTo(container,reply,"ai",true);
+        toast("Script ready! Download to save.","success");
+      }catch(e){think.remove();addMsgTo(container,"Error: "+e.message,"ai");toast(e.message,"error",4000);}
+    });
+    document.getElementById("downloadScriptBtn")?.addEventListener("click",()=>{
+      if(!lastScriptContent){toast("Write a script first","error");return;}
+      downloadTextFile("athena-script.txt",lastScriptContent);
+      toast("Script downloaded!","success");
+    });
+
+    // ================================================================
+    // PRESENTATION
+    // ================================================================
+    document.getElementById("presSendBtn")?.addEventListener("click",async()=>{
+      const user=getCurrentUser();if(!user){toast("Log in first","error");return;}
+      const input=document.getElementById("presInput");
+      const text=input.value.trim();if(!text)return;
+      const container=document.getElementById("presMessages");
+      addMsgTo(container,text,"user");input.value="";
+      const think=addThinking("creating slide deck...",container);
+      try{
+        const reply=await callBackend("presentation","Create a complete presentation about: "+text,user.plan,[],[]);
+        think.remove();lastPresContent=reply;
+        addMsgTo(container,reply,"ai",true);
+        toast("PowerPoint presentation ready to download!","success");
+      }catch(e){think.remove();addMsgTo(container,"Error: "+e.message,"ai");toast(e.message,"error",4000);}
+    });
+    function parsePresentationSlides(text){
+      const raw=String(text||"").replace(/\r/g,"");
+      const chunks=raw.split(/\n---+\n/).map(x=>x.trim()).filter(Boolean);
+      const slides=[];
+      chunks.forEach((chunk,i)=>{
+        const titleMatch=chunk.match(/(?:##\s*)?SLIDE\s*(?:\[\s*\d+\s*\]|\d+)?\s*:\s*(.+)/i);
+        const title=titleMatch?titleMatch[1].trim():`Slide ${i+1}`;
+        let body=chunk.replace(/(?:##\s*)?SLIDE\s*(?:\[\s*\d+\s*\]|\d+)?\s*:\s*.+\n?/i,"").trim();
+        body=body.replace(/\*\*(Layout|Key Content|Visual Element|Speaker Notes):\*\*/gi,"$1:");
+        slides.push({title,body:body||""});
+      });
+      return slides.length?slides:[{title:"Athena AI Presentation",body:raw}];
+    }
+    async function downloadPresentationPptx(text){
+      const Pptx=window.PptxGenJS;
+      if(typeof Pptx!=="function")throw new Error("The presentation library did not load");
+      const pptx=new Pptx();pptx.layout="LAYOUT_WIDE";pptx.author="Athena AI";pptx.subject="Generated presentation";pptx.title="Athena AI Presentation";
+      const slides=parsePresentationSlides(text);
+      slides.forEach((item,i)=>{
+        const slide=pptx.addSlide();slide.background={color:"050507"};
+        slide.addShape(pptx.ShapeType.rect,{x:0,y:0,w:13.333,h:0.12,fill:{color:"F5C14B"},line:{color:"F5C14B"}});
+        slide.addText(item.title,{x:.65,y:.55,w:12,h:.65,fontFace:"Aptos Display",fontSize:27,bold:true,color:"F5C14B",margin:0,breakLine:false,fit:"shrink"});
+        slide.addText(item.body.replace(/\*\*/g,""),{x:.75,y:1.45,w:11.85,h:5.35,fontFace:"Aptos",fontSize:17,color:"F7F7FB",breakLine:false,fit:"shrink",valign:"top",margin:.06,paraSpaceAfterPt:10});
+        slide.addText(`Athena AI  •  ${i+1} / ${slides.length}`,{x:.75,y:7.05,w:11.8,h:.25,fontFace:"Aptos",fontSize:9,color:"9A9CB5",margin:0,align:"right"});
+      });
+      await pptx.writeFile({fileName:"athena-presentation.pptx"});
+    }
+    document.getElementById("downloadPresBtn")?.addEventListener("click",async()=>{
+      if(!lastPresContent){toast("Create a presentation first","error");return;}
+      try{await downloadPresentationPptx(lastPresContent);toast("PowerPoint presentation downloaded!","success");}
+      catch(e){downloadTextFile("athena-presentation.txt",lastPresContent);toast("PowerPoint library unavailable; downloaded the outline instead","info",4000);}
+    });
+
+    // ================================================================
+    // LOGO MAKER
+    // ================================================================
+    document.getElementById("logoSendBtn")?.addEventListener("click",async()=>{
+      const user=getCurrentUser();if(!user){toast("Log in first","error");return;}
+      const input=document.getElementById("logoInput");
+      const text=input.value.trim();if(!text)return;
+      const container=document.getElementById("logoMessages");
+      const previewArea=document.getElementById("logoPreviewArea");
+      addMsgTo(container,text,"user");input.value="";
+      const think=addThinking("designing logo concepts...",container);
+      try{
+        const reply=await callBackend("logo","Create logo concepts for: "+text,user.plan,[],[]);
+        think.remove();addMsgTo(container,reply,"ai",true);
+
+        // Extract image prompts and generate visuals
+        const promptMatches=reply.match(/AI Image Prompt:\s*([^\n]+)/gi)||[];
+        if(promptMatches.length>0){
+          previewArea.innerHTML="";
+          toast("🎨 Generating visual previews...","info",8000);
+          promptMatches.forEach((match,i)=>{
+            const imgPrompt=match.replace(/AI Image Prompt:\s*/i,"").trim();
+            const wrapper=document.createElement("div");
+            wrapper.style.cssText="border-radius:16px;border:1px solid rgba(213,181,118,0.3);overflow:hidden;background:#17202f;";
+            wrapper.innerHTML=`<div style="padding:8px;font-size:11px;color:var(--gold)">Concept ${i+1}</div><div style="color:var(--text-soft);font-size:11px;padding:0 8px 8px;">Loading...</div>`;
+            previewArea.appendChild(wrapper);
+            generateImageWithFallback(imgPrompt+" logo design, clean composition").then(({url:loadedUrl})=>{
+              wrapper.innerHTML=`<div style="padding:8px;font-size:11px;color:var(--gold)">Concept ${i+1}</div><img src="${loadedUrl}" style="width:100%;display:block;border-radius:0 0 16px 16px;" alt="Logo concept ${i+1}"><div style="display:flex;gap:6px;padding:8px;"><button onclick="downloadLogoImg('${loadedUrl}',${i+1})" class="btn ghost" style="font-size:11px;flex:1">⬇ Download</button></div>`;
+            }).catch(()=>{wrapper.innerHTML+=`<div style="color:var(--danger);font-size:11px;padding:8px">Preview failed</div>`;});
+          });
+        }
+        toast("Logo concepts ready!","success");
+      }catch(e){think.remove();addMsgTo(container,"Error: "+e.message,"ai");toast(e.message,"error",4000);}
+    });
+    window.downloadLogoImg=function(url,n){downloadResource(url,"athena-logo-concept-"+n+".png");};
+
+    // ================================================================
+    // BUSINESS HELPER
+    // ================================================================
+    document.getElementById("bizSendBtn")?.addEventListener("click",async()=>{
+      const user=getCurrentUser();if(!user){toast("Log in first","error");return;}
+      const input=document.getElementById("bizInput");
+      const text=input.value.trim();if(!text)return;
+      const container=document.getElementById("bizMessages");
+      addMsgTo(container,text,"user");input.value="";
+      const think=addThinking("consulting...",container);
+      try{
+        const reply=await callBackend("business",text,user.plan,[],[]);
+        think.remove();addMsgTo(container,reply,"ai",true);
+      }catch(e){think.remove();addMsgTo(container,"Error: "+e.message,"ai");toast(e.message,"error",4000);}
+    });
+
+    // ================================================================
+    // BOOK WRITER
+    // ================================================================
+    const bookTitleDisplay=document.getElementById("bookTitleDisplay"),bookSubtitleDisplay=document.getElementById("bookSubtitleDisplay");
+    const bookBubbles=document.getElementById("bookBubbles"),bookTitleInput=document.getElementById("bookTitleInput");
+    const bookGenreInput=document.getElementById("bookGenreInput"),bookDescriptionInput=document.getElementById("bookDescriptionInput");
+    const bookChaptersInput=document.getElementById("bookChapters"),bookWordsPerChapterInput=document.getElementById("bookWordsPerChapter");
+    const bookWritingTypeInput=document.getElementById("bookWritingType"),bookPromptInput=document.getElementById("bookPromptInput");
+    const bookStartBtn=document.getElementById("bookStartBtn"),bookContinueBtn=document.getElementById("bookContinueBtn");
+    const bookNextChapterBtn=document.getElementById("bookNextChapterBtn"),bookCompileBtn=document.getElementById("bookCompileBtn"),bookClearBtn=document.getElementById("bookClearBtn");
+
+    let curChap=0,totChap=0,chapPart=0,lastBookTitle="",lastBookSub="",bookChunks=[],bookBusy=false;
+
+    function resetBook(){
+      curChap=0;totChap=0;chapPart=0;bookChunks=[];bookBubbles.innerHTML="";lastBookTitle="";lastBookSub="";currentBookId=null;
+      bookTitleDisplay.textContent="Your book title";
+      bookSubtitleDisplay.textContent="No chapters yet. Click \u201cStart book\u201d.";
+      bookContinueBtn.disabled=true;bookNextChapterBtn.disabled=true;bookCompileBtn.disabled=true;
+    }
+
+    function addBookBubble(ch,part,text){
+      const b=document.createElement("div");b.className="writing-bubble";
+      const wc=text.split(/\s+/).filter(Boolean).length;
+      b.innerHTML=`<div class="writing-bubble-header"><span>Chapter ${ch} \u2014 Part ${part}</span><span style="color:var(--text-soft);font-size:11px">${wc.toLocaleString()} words</span></div><div class="writing-bubble-body">${escH(text)}</div>`;
+      bookBubbles.appendChild(b);bookBubbles.scrollTop=bookBubbles.scrollHeight;
+    }
+
+    function saveCurrentBook(){
+      if(!bookChunks.length)return;
+      const book={
+        id:currentBookId||("book_"+Date.now()),title:lastBookTitle||"Untitled",subtitle:lastBookSub,
+        chunks:bookChunks,chapters:totChap,currentChapter:curChap,totalChapters:totChap,
+        updatedAt:Date.now()
+      };
+      currentBookId=book.id;
+      saveBook(book);renderBookList();
+      toast("📚 Book saved!","success",2000);
+    }
+
+    function isIncomplete(text,target){return text.split(/\s+/).filter(Boolean).length<target*0.65||!/[.!?'"]$/.test(text.trim().slice(-2));}
+
+    async function genChapter(user,isCont=false){
+      if(bookBusy)return;
+      bookBusy=true;
+      [bookStartBtn,bookContinueBtn,bookNextChapterBtn,bookClearBtn].forEach(b=>b.disabled=true);
+      isCont=isCont&&bookChunks.some(c=>c.chapter===curChap);
+      const title=(bookTitleInput.value||"Untitled").trim();
+      const genre=(bookGenreInput.value||"General").trim();
+      const desc=(bookDescriptionInput.value||"").trim();
+      const wpc=parseInt(bookWordsPerChapterInput.value||"1500",10);
+      const style=(bookWritingTypeInput.value||"Third-person, cinematic").trim();
+      const extra=bookPromptInput.value.trim();
+      const prompt=isCont
+        ?`Continue chapter ${curChap} of "${title}" exactly where it left off. Same style, POV, pacing. No restart.`
+        :`Write chapter ${curChap} of "${title}" (${genre}).\nStyle: ${style}\nTarget: ${wpc} words\nDescription: ${desc||"not specified"}\nExtra: ${extra||"none"}\nPure prose only. No headings. Stop mid-sentence if you hit the limit.`;
+      toast("✍️ Writing chapter "+curChap+(isCont?" (continuing)":"")+"...","info",12000);
+      let text;
+      try{
+        const context=bookChunks.slice(-8).map(c=>({role:"assistant",content:`Chapter ${c.chapter}, part ${c.part}:\n${c.text}`}));
+        text=await callBackend("author",prompt,user.plan,context,[]);
+      }catch(e){
+        toast(e.message||"The chapter could not be written. Try again.","error");
+        bookBusy=false;bookStartBtn.disabled=false;bookClearBtn.disabled=false;
+        bookContinueBtn.disabled=false;bookNextChapterBtn.disabled=true;
+        return;
+      }
+      bookBusy=false;bookStartBtn.disabled=false;bookClearBtn.disabled=false;
+      chapPart++;bookChunks.push({chapter:curChap,part:chapPart,text});
+      addBookBubble(curChap,chapPart,text);
+      lastBookTitle=title;lastBookSub=genre+" · "+totChap+" chapters · ~"+wpc+" words/ch";
+      bookTitleDisplay.textContent=lastBookTitle;bookSubtitleDisplay.textContent=lastBookSub;
+      const incomplete=isIncomplete(text,wpc);
+      bookContinueBtn.disabled=!incomplete;
+      bookNextChapterBtn.disabled=incomplete||curChap>=totChap;
+      bookCompileBtn.disabled=false;
+      saveCurrentBook(); // auto-save after every chunk
+    }
+
+    bookStartBtn.onclick=async()=>{
+      if(bookBusy)return;
+      const u=getCurrentUser();if(!u){toast("Log in first","error");return;}
+      resetBook();totChap=parseInt(bookChaptersInput.value||"10",10);curChap=1;chapPart=0;
+      currentBookId="book_"+Date.now();await genChapter(u,false);
+    };
+    bookContinueBtn.onclick=async()=>{const u=getCurrentUser();if(!u)return;await genChapter(u,true);};
+    bookNextChapterBtn.onclick=async()=>{const u=getCurrentUser();if(!u)return;if(curChap>=totChap)return;curChap++;chapPart=0;bookContinueBtn.disabled=true;bookNextChapterBtn.disabled=true;await genChapter(u,false);};
+    bookClearBtn.onclick=()=>{resetBook();renderBookList();toast("Cleared.","info");};
+    bookCompileBtn.onclick=async()=>{
+      if(!bookChunks.length){toast("Nothing to compile","error");return;}
+      const sorted=bookChunks.slice().sort((a,b)=>a.chapter===b.chapter?a.part-b.part:a.chapter-b.chapter);
+      let full="Title: "+lastBookTitle+"\n"+(lastBookSub?"Subtitle: "+lastBookSub+"\n\n":"\n");
+      let cur=0;for(const c of sorted){if(c.chapter!==cur){cur=c.chapter;full+="\n\n=== Chapter "+cur+" ===\n\n";}full+=c.text+"\n\n";}
+      toast("📚 Compiling...","info");
+      await downloadDocx("book.docx",lastBookTitle,full);
+      toast("Book downloaded!","success");
+    };
+
+    // ================================================================
+    // BOOK DESIGNER
+    // ================================================================
+    const frontCoverText=document.getElementById("frontCoverText"),backCoverText=document.getElementById("backCoverText");
+    const designerPromptInput=document.getElementById("designerPromptInput"),designerBtn=document.getElementById("designerBtn");
+    designerBtn.onclick=async()=>{
+      const u=getCurrentUser();if(!u){toast("Log in first","error");return;}
+      if(!lastBookTitle&&!bookChunks.length){toast("Write some book content first","error");return;}
+      toast("🎨 Designing cover...","info",6000);
+      const body=bookChunks.slice().sort((a,b)=>a.chapter===b.chapter?a.part-b.part:a.chapter-b.chapter).map(c=>c.text).join("\n\n");
+      const prompt=`Book: "${lastBookTitle||"Untitled"}"\nSubtitle: ${lastBookSub||""}\nExcerpt:\n${body.slice(0,2000)}\nExtra: ${designerPromptInput.value.trim()||"none"}\n\nReturn:\nFront cover concept:\nBack cover blurb:`;
+      let reply;try{reply=await callBackend("designer",prompt,u.plan,[],[]);}catch(e){reply="Error: "+e.message;}
+      const fm=reply.match(/Front cover concept:\s*([\s\S]*?)\nBack cover blurb:/i);
+      const bm=reply.match(/Back cover blurb:\s*([\s\S]*)/i);
+      frontCoverText.textContent=fm?fm[1].trim():reply;backCoverText.textContent=bm?bm[1].trim():"";
+      toast("Cover concepts ready!","success");
+    };
+
+    // ================================================================
+    // DOWNLOADS + MEDIA HELPERS
+    // ================================================================
+    function downloadTextFile(filename, text, mime="text/plain"){
+      const blob=new Blob([String(text||"")],{type:mime+";charset=utf-8"});
+      const url=URL.createObjectURL(blob);const a=document.createElement("a");
+      a.href=url;a.download=filename;a.style.display="none";document.body.appendChild(a);a.click();
+      setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},500);
+    }
+    async function downloadResource(url,filename){
+      try{
+        const r=await fetch(url,{mode:"cors",cache:"no-store"});
+        if(!r.ok)throw new Error("HTTP "+r.status);
+        const blob=await r.blob();const objectUrl=URL.createObjectURL(blob);
+        const a=document.createElement("a");a.href=objectUrl;a.download=filename;a.style.display="none";
+        document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(objectUrl);},800);
+        toast("Download started","success",1800);
+      }catch(e){
+        // Some image hosts block programmatic downloads. Opening the resource is the safe fallback.
+        const a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.style.display="none";document.body.appendChild(a);a.click();
+        setTimeout(()=>a.remove(),500);
+        toast("Opened the file in a new tab; use Save As if needed","info",3500);
+      }
+    }
+    async function loadImageUrl(url){
+      // Fetch as a blob first. This avoids hotlink/referrer problems from image hosts.
+      try{
+        const r=await fetch(url,{mode:"cors",cache:"no-store"});
+        if(!r.ok)throw new Error("HTTP "+r.status);
+        const blob=await r.blob();
+        if(!blob.type.startsWith("image/"))throw new Error("Not an image response");
+        return URL.createObjectURL(blob);
+      }catch(fetchError){
+        return await new Promise((resolve,reject)=>{
+          const img=new Image();
+          img.onload=()=>resolve(url);
+          img.onerror=()=>reject(new Error("Image preview could not be loaded"));
+          img.src=url;
+        });
+      }
+    }
+    async function generateImageWithFallback(prompt){ return Athena.imageRequest(prompt); }
+
+    async function downloadDocx(filename,title,body){
+      if(!window.docx)throw new Error("The document library did not load");
+      const{Document,Packer,Paragraph,HeadingLevel}=window.docx;
+      const lines=String(body||"").split("\n");
+      const doc=new Document({sections:[{properties:{},children:[new Paragraph({text:String(title||"Athena Document"),heading:HeadingLevel.TITLE}),new Paragraph({text:""}), ...lines.map(l=>new Paragraph({text:l}))]}]});
+      const blob=await Packer.toBlob(doc);
+      const url=URL.createObjectURL(blob);const a=document.createElement("a");
+      a.href=url;a.download=filename;a.style.display="none";document.body.appendChild(a);a.click();
+      setTimeout(()=>{a.remove();URL.revokeObjectURL(url);},800);
+    }
+
+    downloadDocsDocxBtn.onclick=async()=>{
+      if(!lastDocsContent){toast("Generate a document first","error");return;}
+      toast("⬇️ Preparing download...","info",2000);
+      try{
+        await downloadDocx("athena-document.docx","Athena Document",lastDocsContent);
+        toast("Document downloaded!","success");
+      }catch(e){
+        // Fallback: plain text download
+        downloadTextFile("athena-document.txt",lastDocsContent);
+        toast("Downloaded as .txt because DOCX was unavailable","info");
+      }
+    };
+
+    // ================================================================
+    // MEDIA — IMAGE + VIDEO
+    // ================================================================
+    const mediaMessages=document.getElementById("mediaMessages"),mediaPreview=document.getElementById("mediaPreview");
+    const mediaPromptInput=document.getElementById("mediaPromptInput"),mediaSendBtn=document.getElementById("mediaSendBtn");
+    let freeVideoCount=0;
+
+    // INJECT SIDEBAR HISTORY + BOOK LIST
+    // ================================================================
+    function injectSidebar(){
+      const sidebar=document.querySelector(".sidebar");if(!sidebar)return;
+      if(document.getElementById("chatHistoryList"))return;
+      const logoutBtn=sidebar.querySelector("#logoutBtn");
+      const section=document.createElement("div");
+      section.innerHTML=`
+        <div class="sidebar-label" style="margin-top:6px">Recent Chats</div>
+        <div id="chatHistoryList" style="display:flex;flex-direction:column;gap:2px;max-height:180px;overflow-y:auto;"></div>
+        <div class="sidebar-label" style="margin-top:6px">Saved Books</div>
+        <div id="savedBooksList" style="display:flex;flex-direction:column;gap:2px;max-height:120px;overflow-y:auto;"></div>
+      `;
+      sidebar.insertBefore(section,logoutBtn);
+    }
+
+    // ================================================================
+    // CSS INJECTION
+    // ================================================================
+    function injectCSS(){
+      const s=document.createElement("style");
+      s.textContent=`
+        @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes blink{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+        @keyframes logoPulse{0%,100%{box-shadow:0 0 18px rgba(213,181,118,.7),0 0 26px rgba(0,0,0,.9)}50%{box-shadow:0 0 32px rgba(213,181,118,1),0 0 60px rgba(213,181,118,.25)}}
+        .logo-img{animation:logoPulse 3s ease-in-out infinite}
+        .thinking{display:flex;align-items:center;gap:5px;padding:8px 0}
+        .thinking-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);animation:blink 1.2s infinite}
+        .thinking-dot:nth-child(2){animation-delay:.2s}.thinking-dot:nth-child(3){animation-delay:.4s}
+        .msg-body{line-height:1.65}
+        .msg-actions{display:flex;gap:6px;margin-top:8px}
+        .copy-btn{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid rgba(213,181,118,0.3);background:transparent;color:var(--text-soft);cursor:pointer;font-family:inherit;transition:all .15s}
+        .copy-btn:hover{border-color:var(--gold);color:var(--gold)}
+        .md-content h1{font-family:var(--font-display);color:var(--gold);font-size:18px;margin:12px 0 4px}
+        .md-content h2{font-family:var(--font-display);color:var(--gold);font-size:15px;margin:10px 0 3px}
+        .md-content h3{color:var(--gold);font-size:13px;margin:8px 0 2px;font-weight:600}
+        .md-content p{margin-bottom:8px}.md-content ul{margin:4px 0 8px 18px}.md-content li{margin-bottom:3px}
+        .md-content strong{color:var(--text);font-weight:600}.md-content em{color:var(--text-soft)}
+        .md-content hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+        .md-content blockquote{border-left:3px solid var(--gold);padding:4px 10px;color:var(--text-soft);margin:6px 0}
+        .md-content .src{font-size:11px;color:var(--text-soft);margin:2px 0}.md-content .sn{color:var(--gold);font-weight:600;margin-right:4px}
+        .ic{font-family:var(--font-mono);background:rgba(213,181,118,0.08);border:1px solid rgba(213,181,118,0.2);border-radius:4px;padding:1px 5px;font-size:11px;color:#d5b576}
+        .cb{background:#050509;border:1px solid rgba(80,80,120,0.8);border-radius:12px;margin:8px 0;overflow:hidden}
+        .cb-head{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(213,181,118,0.06);border-bottom:1px solid rgba(80,80,120,0.5)}
+        .cb-lang{font-size:11px;color:var(--gold);font-family:var(--font-mono);font-weight:600}
+        .cb-copy{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid rgba(213,181,118,0.3);background:transparent;color:var(--text-soft);cursor:pointer;font-family:inherit}
+        .cb-copy:hover{border-color:var(--gold);color:var(--gold)}
+        .cb-pre code{display:block;padding:12px 14px;font-family:var(--font-mono);font-size:12px;line-height:1.6;color:var(--text);overflow-x:auto;white-space:pre}
+        .history-item{position:relative;padding:6px 28px 6px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s}
+        .history-item:hover{background:#17202f;border-color:rgba(213,181,118,0.3)}
+        .history-title{font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:185px}
+        .history-meta{font-size:10px;color:var(--text-soft);margin-top:1px}
+        .history-del{position:absolute;right:5px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-soft);cursor:pointer;font-size:15px;padding:1px 4px;border-radius:4px;opacity:0;transition:opacity .15s;line-height:1}
+        .history-item:hover .history-del{opacity:1}.history-del:hover{color:var(--danger)}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:rgba(213,181,118,0.3);border-radius:99px}::-webkit-scrollbar-thumb:hover{background:rgba(213,181,118,0.6)}
+        #chatHistoryList::-webkit-scrollbar,#savedBooksList::-webkit-scrollbar{width:3px}
+      `;
+      document.head.appendChild(s);
+    }
+
+    // ================================================================
+    // INIT
+    // ================================================================
+    (()=>{
+      injectCSS();injectSidebar();updateNav();
+      const u=getCurrentUser();
+      if(u){
+        showScreen("app");newChatSession("chat");renderChatHistory();renderBookList();
+        const wb=u.isCreator?"Welcome back, Luis — Creator of Athena 👑. Athena AI is ready. What shall we build?":"Welcome back, "+u.name+"! Powered by Athena AI — what are we working on today?";
+        setTimeout(()=>addMessage(wb,"ai",false),200);
+      } else {
+        showScreen("home");
+      }
+    })();
+  
+    // ================================================================
+    // V8 QUALITY-OF-LIFE: backend status, model choice, shortcuts
+    // ================================================================
+    (function enhanceRuntime(){
+      const headerTools=document.querySelector(".main-header > div:last-child");
+      if(!headerTools)return;
+
+      const model=document.createElement("select");
+      model.id="modelSelect";model.title="Choose the backend model";
+      model.style.cssText="padding:4px 8px;border-radius:999px;border:1px solid rgba(213,181,118,.4);background:rgba(10,10,14,.95);color:#f4efe5;font-size:11px;outline:none;cursor:pointer;font-family:inherit;";
+      model.innerHTML='<option value="auto">Auto · free providers</option>';
+      headerTools.insertBefore(model,headerTools.firstChild);
+
+      const status=document.createElement("button");
+      status.id="backendStatus";status.type="button";status.title="Test Athena backend connection";
+      status.style.cssText="padding:4px 9px;border-radius:999px;border:1px solid rgba(213,181,118,.4);background:rgba(10,10,14,.95);color:#d5b576;font-size:11px;cursor:pointer;font-family:inherit;";
+      status.textContent="◌ Backend";
+      status.onclick=()=>checkBackend(true);
+      headerTools.insertBefore(status,headerTools.firstChild);
+
+      async function checkBackend(manual){
+        status.textContent="◌ Checking";status.style.color="#d5b576";
+        try{
+          // OPTIONS tests the deployed function without spending an AI request.
+          const r=await fetch(BACKEND,{method:"OPTIONS",cache:"no-store"});
+          if(!r.ok)throw new Error("HTTP "+r.status);
+          status.textContent="● Backend online";status.style.color="#76e39a";
+          if(manual)toast("Athena backend is online","success",2200);
+        }catch(e){
+          status.textContent="● Backend offline";status.style.color="#ff6b7d";
+          if(manual)toast("Backend connection failed: "+e.message,"error",4500);
+        }
+      }
+      window.checkNeuronBackend=checkBackend;checkBackend(false);
+      window.addEventListener("online",()=>checkBackend(false));
+      window.addEventListener("offline",()=>{status.textContent="● Offline";status.style.color="#ff6b7d";});
+
+      // Ctrl/Cmd + Enter sends the current main prompt.
+      document.getElementById("promptInput")?.addEventListener("keydown",e=>{
+        if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();sendMessage();}
+      });
+    })();
+</script>
+<link rel="stylesheet" href="athena.css" />
+</body>
+</html>
