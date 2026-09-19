@@ -1,4 +1,6 @@
 :root { color-scheme: dark; --bg:#101521; --bg-soft:#17202f; --bg-soft-2:#1c2535; --gold:#d5b576; --gold-soft:rgba(213,181,118,.12); --text:#f4efe5; --text-soft:#aeb8c8; --border:#303b4e; --shadow:none; }
+::selection { background:#e8c77e !important; color:#17202f !important; text-shadow:none !important; }
+input::selection, textarea::selection, pre::selection, code::selection, .msg-body ::selection { background:#e8c77e !important; color:#17202f !important; text-shadow:none !important; }
 html { background:var(--bg); }
 body { background:var(--bg); }
 .hidden { display:none !important; }
@@ -70,6 +72,16 @@ button:focus-visible, a:focus-visible, summary:focus-visible, select:focus-visib
 .artifact pre { flex:1; margin:0; padding:20px; min-height:0; overflow:auto; white-space:pre; font:12px/1.7 var(--font-mono); color:var(--text); }
 .artifact-empty { padding:40px 25px; margin:auto; text-align:center; color:var(--text-soft); font-size:14px; line-height:1.7; }
 .artifact-footnote { padding:8px 12px; color:var(--text-soft); border-top:1px solid var(--border); font-size:10px; }
+.artifact-toolbar select { background:var(--bg-soft-2); color:var(--gold); border:1px solid var(--border); border-radius:7px; padding:6px; font-size:11px; max-width:115px; }
+#artifactEditor { flex:1; width:100%; min-height:0; resize:none; border:0; outline-offset:-3px; padding:20px; background:#1c2535; color:#f4efe5; tab-size:2; white-space:pre; font:12px/1.7 var(--font-mono); }
+.artifact-status { padding:10px 14px; background:#392f1d; color:#f1d7a1; font-size:12px; line-height:1.5; border-bottom:1px solid var(--gold); }
+.backup-toggle { display:inline-flex; align-items:center; gap:6px; color:var(--text-soft); font-size:12px; white-space:nowrap; min-height:34px; }
+.backup-toggle input { accent-color:var(--gold); }
+.provider-notice { font-size:11px; color:var(--text-soft); margin:-4px 0 12px; }
+#artifactRun { background:var(--gold); color:#17202f; border-color:var(--gold); }
+#artifactIssues { display:flex; align-items:center; gap:12px; flex-wrap:wrap; max-height:160px; overflow:auto; }
+#artifactIssueText { flex:1; min-width:180px; overflow-wrap:anywhere; }
+#artifactRepair { padding:6px 10px; background:var(--gold); color:#17202f; border:0; border-radius:6px; font-size:12px; }
 .workspace.code-workspace { display:grid; grid-template-columns:minmax(270px,var(--chat-width,42%)) 12px minmax(0,1fr); overflow:hidden; }
 .code-workspace #chatLayout { height:100%; padding-right:8px; }
 .code-workspace .artifact { height:100%; }

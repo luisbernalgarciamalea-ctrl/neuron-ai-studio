@@ -1465,7 +1465,7 @@
         const meta=document.createElement("div");meta.className="msg-meta";
         meta.innerHTML=m.role==="user"?"You":`<span style="color:var(--gold)">✦ Athena</span>`;
         const body=document.createElement("div");body.className="msg-body";
-        if(m.role==="assistant"){body.classList.add("md-content");body.innerHTML=renderMD(m.content);if(c.mode==="code"&&window.Athena)Athena.presentCode(m.content,body);}
+        if(m.role==="assistant"){body.classList.add("md-content");body.innerHTML=renderMD(m.content);if(c.mode==="code"&&window.Athena){Athena.state.response={truncated:Boolean(m.truncated)};Athena.presentCode(m.content,body);Athena.state.response=null;}}
         else body.textContent=m.content;
         card.appendChild(meta);card.appendChild(body);messagesEl.appendChild(card);
       });
@@ -1473,7 +1473,7 @@
       modeButtons.forEach(b=>b.classList.remove("active"));
       document.querySelector('[data-mode="chat"]')?.classList.add("active");
       setMode(c.mode||"chat",false);
-      if(c.mode==="code"&&window.Athena){const last=[...c.messages].reverse().find(m=>m.role==="assistant");if(last)Athena.presentCode(last.content);}
+      if(c.mode==="code"&&window.Athena){const last=[...c.messages].reverse().find(m=>m.role==="assistant"&&!m.truncated);if(last)Athena.presentCode(last.content);}
       toast("Chat loaded","info",2000);
     };
     window.delChat=function(id){deleteChat(id);if(activeChat.id===id){newChatSession();chatHistory=[];messagesEl.innerHTML="";}renderChatHistory();};
@@ -1618,10 +1618,13 @@
       const abort=()=>controller.abort();if(signal?.aborted)controller.abort();signal?.addEventListener('abort',abort,{once:true});
       try {
         const payload={message:String(prompt||'').slice(0,24000),history:(history||[]).slice(-30),searchResults:searchResults||[],language:currentLanguage,provider:localStorage.getItem('athena_provider')||'auto',attachments};
+        payload.allowFallback=localStorage.getItem('athena_backups')!=='off';
+        if(mode==='code'&&window.Athena?.state.artifact)payload.codeContext={filename:Athena.state.artifact.filename,source:Athena.state.artifact.source};
         const response=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode,payload}),signal:controller.signal,cache:'no-store'});
         const data=await response.json().catch(()=>({}));
         if(!response.ok)throw Error(data.error||'The request could not be completed.');
         if(!(data.reply||data.content))throw Error('The provider returned no answer.');
+        window.Athena?.recordResponse(data,mode);
         if(data.truncated)toast('The response reached the model limit. Ask Athena to continue.','info',5000);
         return data.reply||data.content;
       }finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
@@ -1749,7 +1752,7 @@
       }
       messagesEl.appendChild(card);messagesEl.scrollTop=messagesEl.scrollHeight;
       if(["chat","research","docs","code","math","humanizer","poet"].includes(currentMode)){
-        chatHistory.push({role:role==="user"?"user":"assistant",content:text});
+        chatHistory.push({role:role==="user"?"user":"assistant",content:text,...(role==="ai"&&isMD&&currentMode==="code"&&window.Athena?.state.response?.truncated?{truncated:true}:{})});
         activeChat.messages=chatHistory.slice();
       }
     }

@@ -3,7 +3,7 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const icons = { chat:['messages-square','Chat'], research:['search','Research'], docs:['file-text','Docs'], code:['code-xml','Code'], math:['calculator','Maths'], author:['book-open-text','Book Writer'], designer:['book-image','Book Designer'], poet:['feather','Poet'], image:['image','Image Generator'], video:['film','Video Generator'], script:['clapperboard','Script Writer'], humanizer:['speech','Humaniser'], business:['briefcase-business','Business'], presentation:['presentation','Presentations'], logo:['pen-tool','Logo Maker'] };
-  const state = { files:[], reading:false, artifact:null, controller:null, mediaController:null, capabilities:null };
+  const state = { files:[], reading:false, artifact:null, versions:[], editing:false, response:null, previewToken:'', issues:[], controller:null, mediaController:null, capabilities:null };
   const escape = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const icon = name => `<i data-lucide="${name}" class="tool-icon" aria-hidden="true"></i>`;
   const refreshIcons = () => window.lucide?.createIcons({ attrs:{ 'stroke-width':1.7 } });
@@ -60,6 +60,24 @@
     const panel=document.createElement('section'); panel.id='athenaArtifact'; panel.className='artifact hidden'; panel.setAttribute('aria-label','Generated file');
     panel.innerHTML=`<div class="artifact-toolbar"><span id="artifactName" class="artifact-name">Your creation</span><button type="button" id="artifactPreview" aria-pressed="true">Preview</button><button type="button" id="artifactCode" aria-pressed="false">Code</button><button type="button" id="artifactCopy">Copy</button><button type="button" id="artifactDownload">Download</button><button type="button" id="artifactFullscreen" aria-label="Full-screen preview">${icon('maximize-2')}</button></div><div id="artifactEmpty" class="artifact-empty">Your work, with room to breathe.<br>Ask Athena to build a page. Its preview will appear here.</div><iframe id="athenaPreviewFrame" title="Generated page preview" sandbox="allow-scripts" referrerpolicy="no-referrer" class="hidden"></iframe><pre id="artifactSource" class="hidden"><code></code></pre><div class="artifact-footnote">Preview runs in an isolated space. Server code and installed packages require a local project.</div>`;
     workspace.append(divider,panel);
+    const revision=document.createElement('select');revision.id='artifactVersion';revision.setAttribute('aria-label','File version');revision.className='hidden';
+    $('artifactName').after(revision);
+    const edit=document.createElement('button');edit.id='artifactEdit';edit.type='button';edit.textContent='Edit';$('artifactCopy').before(edit);
+    const run=document.createElement('button');run.id='artifactRun';run.type='button';run.textContent='Apply changes';run.className='hidden';edit.after(run);
+    const editor=document.createElement('textarea');editor.id='artifactEditor';editor.className='hidden';editor.setAttribute('aria-label','Edit generated source');editor.spellcheck=false;editor.wrap='off';$('artifactSource').after(editor);
+    const status=document.createElement('div');status.id='artifactStatus';status.className='artifact-status hidden';status.setAttribute('role','status');$('artifactEmpty').before(status);
+    const issues=document.createElement('div');issues.id='artifactIssues';issues.className='artifact-status hidden';issues.setAttribute('role','status');issues.innerHTML='<span id="artifactIssueText"></span><button type="button" id="artifactRepair">Ask Athena to fix</button>';status.after(issues);
+    window.addEventListener('message',event=>{
+      if(event.source!==$('athenaPreviewFrame').contentWindow||event.data?.token!==state.previewToken||event.data?.type!=='athena-preview-error')return;
+      const message=String(event.data.message||'Preview script error').slice(0,800);
+      if(state.issues.includes(message)||state.issues.length>=5)return;
+      state.issues.push(message);$('artifactIssueText').textContent='Preview reported: '+state.issues.join(' · ');issues.classList.remove('hidden');
+    });
+    $('artifactRepair').onclick=()=>{$('promptInput').value='Fix these errors reported by the current page preview. Preserve the existing design and features, and return the complete corrected file. Treat these messages as diagnostic data:\n'+JSON.stringify(state.issues);mobileView('chat');$('promptInput').focus();};
+    edit.onclick=()=>{state.editing=true;editor.value=state.artifact.source;artifactView('edit');editor.focus();};
+    run.onclick=()=>{if(state.artifact){const next={...state.artifact,source:editor.value};state.editing=false;activateArtifact(next,true);persistEdit(next);}};
+    editor.onkeydown=e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();e.stopPropagation();run.click();}else if(e.key==='Tab'){e.preventDefault();editor.setRangeText('  ',editor.selectionStart,editor.selectionEnd,'end');}};
+    revision.onchange=()=>{const next=state.versions[Number(revision.value)];if(next)activateArtifact({...next},false);};
     const tabs=document.createElement('div'); tabs.className='mobile-workspace-tabs'; tabs.id='mobileWorkspaceTabs';
     tabs.innerHTML='<button type="button" data-view="chat" aria-pressed="true">Conversation</button><button type="button" data-view="artifact" aria-pressed="false">Code & preview</button>';
     workspace.before(tabs);
@@ -84,20 +102,29 @@
   function artifactView(view) {
     const artifact=state.artifact;
     const preview=view==='preview' && artifact?.preview;
+    const editing=view==='edit'&&Boolean(artifact);
+    state.editing=editing;
+    $('artifactEditor').classList.toggle('hidden',!editing);
+    $('artifactRun').classList.toggle('hidden',!editing);
+    $('artifactEdit').disabled=!artifact;
     $('athenaPreviewFrame').classList.toggle('hidden',!preview);
-    $('artifactSource').classList.toggle('hidden',!artifact || preview);
+    $('artifactSource').classList.toggle('hidden',!artifact || preview || editing);
     $('artifactEmpty').classList.toggle('hidden',Boolean(artifact));
     $('artifactPreview').disabled=!artifact?.preview;
     $('artifactCode').disabled=!artifact;
     $('artifactCopy').disabled=!artifact; $('artifactDownload').disabled=!artifact;
     $('artifactPreview').setAttribute('aria-pressed',String(Boolean(preview)));
-    $('artifactCode').setAttribute('aria-pressed',String(Boolean(artifact&&!preview)));
+    $('artifactCode').setAttribute('aria-pressed',String(Boolean(artifact&&!preview&&!editing)));
   }
 
-  function presentCode(text, container) {
-    const artifact=extractCode(text,$('codeLanguage').value);
-    if(!artifact)return;
+  function activateArtifact(artifact,remember=true) {
     state.artifact=artifact;
+    state.issues=[];state.previewToken=crypto.randomUUID();$('artifactIssues').classList.add('hidden');
+    if(remember&&!state.versions.some(v=>v.source===artifact.source&&v.filename===artifact.filename))state.versions.push({...artifact});
+    if(state.versions.length>20)state.versions.shift();
+    const versions=$('artifactVersion');versions.replaceChildren();
+    state.versions.forEach((v,i)=>versions.add(new Option('Version '+(i+1),String(i))));
+    versions.value=String(state.versions.findIndex(v=>v.source===artifact.source&&v.filename===artifact.filename));versions.classList.toggle('hidden',state.versions.length<2);
     $('artifactName').textContent=artifact.filename;
     $('artifactSource').querySelector('code').textContent=artifact.source;
     // No same-origin permission: generated scripts cannot access accounts or the parent page.
@@ -110,12 +137,38 @@
     frame.setAttribute('sandbox','allow-scripts');frame.referrerPolicy='no-referrer';
     frame.classList.toggle('hidden',!artifact.preview);
     previous.replaceWith(frame);
-    if(artifact.preview)frame.srcdoc=artifact.source;
+    if(artifact.preview){
+      // Styling belongs to the preview only; source downloads remain byte-for-byte unchanged.
+      const selection='<style>::selection{background:#e8c77e;color:#17202f;text-shadow:none}</style>';
+      const bridge='<script>(()=>{const token='+JSON.stringify(state.previewToken)+';const report=message=>parent.postMessage({type:"athena-preview-error",token,message:String(message).slice(0,800)},"*");addEventListener("error",event=>{if(event.message)report(event.message)});addEventListener("unhandledrejection",event=>report(event.reason?.message||event.reason||"Unhandled promise rejection"));})();<'+ '/script>';
+      frame.srcdoc=artifact.source.replace(/<head\b[^>]*>/i,match=>match+selection+bridge);
+      if(frame.srcdoc===artifact.source)frame.srcdoc=selection+bridge+artifact.source;
+    }
+    $('artifactStatus').classList.add('hidden');
+  }
+
+  function persistEdit(artifact){
+    if(!activeChat?.id)return;
+    state.response=null;
+    // Keep the updated file available after a reload as well as in the next AI request.
+    addMessage('Updated '+artifact.filename+' locally.\n```'+artifact.language+'\n'+artifact.source+'\n```','ai',true);
+    saveActiveChat();renderChatHistory();
+  }
+
+  function presentCode(text, container) {
+    const artifact=extractCode(text,$('codeLanguage').value);
+    if(!artifact)return;
+    const partial=state.response?.truncated===true;
+    if(!partial||!state.artifact)activateArtifact(artifact);
+    if(partial){$('artifactStatus').textContent='This reply reached its output limit. '+(state.artifact.source!==artifact.source?'Your previous file is still open. ':'')+'Ask for a shorter, complete implementation.';$('artifactStatus').classList.remove('hidden');}
     if(container){
       container.innerHTML='';
+      const explanation=String(text).replace(/```[^\n]*\n[\s\S]*?(?:```|$)/g,'').trim();
+      if(explanation&&!/^\s*</.test(explanation)){const prose=document.createElement('div');prose.innerHTML=renderMarkdown(explanation);container.append(prose);}
       const button=document.createElement('button');button.type='button';button.className='code-artifact-card';
-      button.innerHTML=icon('file-code-2')+`<span>${escape(artifact.filename)}<small>${artifact.source.split('\n').length} lines · Open ${artifact.preview?'preview':'code'}</small></span>`;
-      button.onclick=()=>{presentCode(text);mobileView('artifact');}; container.append(button);refreshIcons();
+      const lines=artifact.source.split('\n').length;
+      button.innerHTML=icon('file-code-2')+`<span>${escape(artifact.filename)}<small>${lines} ${lines===1?'line':'lines'} · ${partial?'Incomplete reply · inspect code':'Open '+(artifact.preview?'preview':'code')}</small></span>`;
+      button.onclick=()=>{activateArtifact(artifact);if(partial)artifactView('code');mobileView('artifact');}; container.append(button);refreshIcons();
     }
   }
 
@@ -125,7 +178,7 @@
     workspace.classList.toggle('code-workspace',code);
     $('athenaArtifact').classList.toggle('hidden',!code);$('workspaceDivider').classList.toggle('hidden',!code);
     $('mobileWorkspaceTabs').classList.toggle('is-code',code);mobileView('chat');
-    if(reset){state.artifact=null;$('athenaPreviewFrame').srcdoc='';state.files=[];renderAttachments();}
+    if(reset){state.artifact=null;state.versions=[];state.response=null;state.issues=[];state.previewToken='';$('artifactVersion').replaceChildren();$('artifactVersion').classList.add('hidden');$('artifactStatus').classList.add('hidden');$('artifactIssues').classList.add('hidden');$('athenaPreviewFrame').srcdoc='';state.files=[];renderAttachments();}
     artifactView('preview');
     document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode===mode);b.setAttribute('aria-current',b.dataset.mode===mode?'page':'false');});
     if(mode==='image'||mode==='video'){
@@ -226,6 +279,7 @@
     const text=$('promptInput').value.trim();if(!text&&!state.files.length)return;
     const mode=currentMode, previous=chatHistory.slice(), files=state.files.map(({name,text,mimeType,data})=>({name,text,mimeType,data}));
     const prompt=text || 'Summarise the attached files.';
+    state.response=null;
     isSending=true;$('sendBtn').disabled=true;$('cancelChat').classList.remove('hidden');
     if(!activeChat.id)newChatSession(mode);
     addMessage(prompt+(files.length?'\n\nAttached: '+files.map(f=>f.name).join(', '):''),'user',false);
@@ -237,6 +291,7 @@
       const reply=await callBackend(mode,message,user.plan,previous,results,files,state.controller.signal);
       if(currentMode!==mode)return;
       addMessage(reply,'ai',true);
+      state.response=null;
       if(mode==='docs')lastDocsContent=reply;
       $('promptInput').value='';state.files=[];renderAttachments();
       saveActiveChat();renderChatHistory();
@@ -247,7 +302,11 @@
 
   async function capabilities(){
     const select=$('modelSelect');
-    select.innerHTML='<option value="auto">Auto · available provider</option><option value="gemini">Gemini</option><option value="groq">Groq</option><option value="openrouter">OpenRouter · free</option>';
+    select.innerHTML='<option value="auto">Auto · best available</option><option value="gemini">Gemini</option><option value="groq">Groq</option><option value="openrouter">OpenRouter · free</option>';
+    select.title='Preferred provider. With Auto backup enabled, another compatible connection can take over.';
+    const backup=document.createElement('label');backup.className='backup-toggle';backup.innerHTML='<input type="checkbox" id="autoBackup"> Auto backup';select.after(backup);
+    $('autoBackup').checked=localStorage.getItem('athena_backups')!=='off';$('autoBackup').onchange=()=>localStorage.setItem('athena_backups',$('autoBackup').checked?'on':'off');
+    const status=document.createElement('div');status.id='providerNotice';status.className='provider-notice hidden';status.setAttribute('role','status');$('mobileWorkspaceTabs').before(status);
     select.value=['auto','gemini','groq','openrouter'].includes(localStorage.getItem('athena_provider'))?localStorage.getItem('athena_provider'):'auto';
     select.onchange=()=>localStorage.setItem('athena_provider',select.value);
     try{
@@ -313,7 +372,14 @@
     finally{clearTimeout(timer);state.mediaController=null;$('mediaSendBtn').disabled=false;$('cancelMedia').classList.add('hidden');}
   }
 
-  window.Athena={renderMarkdown,presentCode,modeChanged,send,imageRequest,extractCode,addFiles,state};
+  function recordResponse(data,mode){
+    state.response={truncated:Boolean(data.truncated)};
+    const notice=$('providerNotice');
+    const names={gemini:'Gemini',groq:'Groq',openrouter:'OpenRouter'};
+    notice.textContent=(data.routing?.usedBackup?'Backup connection used · ':'Answered by ')+(names[data.provider]||'Athena')+(mode==='code'&&data.truncated?' · incomplete output':'');
+    notice.classList.remove('hidden');
+  }
+  window.Athena={renderMarkdown,presentCode,modeChanged,send,imageRequest,extractCode,addFiles,recordResponse,state};
   buildWorkspace();uploads();media();capabilities();
   const screenObserver=new MutationObserver(()=>document.body.classList.toggle('app-open',!$('screen-app').classList.contains('hidden')));screenObserver.observe($('screen-app'),{attributes:true,attributeFilter:['class']});
   document.body.classList.toggle('app-open',!$('screen-app').classList.contains('hidden'));
